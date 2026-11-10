@@ -15,7 +15,9 @@ import marsrover.session.Session;
 /** Session summary: stars per level, total and time. */
 public final class EndScreen extends BorderPane {
 
-    public EndScreen(Session session, Session.Result result, List<Level> levels, Node side, Runnable onDone) {
+    /** @param rank 1-based leaderboard rank, or 0 if the result was not stored */
+    public EndScreen(Session session, Session.Result result, int rank, List<Level> levels, Node side,
+                     Runnable onDone) {
         getStyleClass().add("end-screen");
 
         Label title = new Label(Texts.missionComplete(session.name()));
@@ -43,7 +45,13 @@ public final class EndScreen extends BorderPane {
         done.setDefaultButton(true);
         done.setOnAction(e -> onDone.run());
 
-        VBox main = new VBox(28, title, table, total, time, done);
+        VBox main = new VBox(28, title, table, total, time);
+        if (rank > 0) {
+            Label place = new Label(Texts.rank(rank));
+            place.getStyleClass().add("end-rank");
+            main.getChildren().add(place);
+        }
+        main.getChildren().add(done);
         main.setAlignment(Pos.CENTER_LEFT);
         main.setPadding(new Insets(0, 0, 0, 140));
         setCenter(main);

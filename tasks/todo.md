@@ -58,7 +58,7 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
   - Verify: `NameFilterTest`, `SessionTest` (score, tiebreak time); manual full session.
   - Files: `session/Session`, `session/NameFilter`, `view/StartScreen`, `view/EndScreen`
 
-- [ ] **T10: Leaderboard** (S) – depends on T9
+- [x] **T10: Leaderboard** (S) – depends on T9
   - Acceptance: `data/leaderboard.json` holds the top 10 (stars desc, time asc), shown on the start and end screens; a corrupt or missing file means an empty board, never a crash.
   - Verify: `LeaderboardTest` (ordering, cut at 10, round-trip, corrupt file).
   - Files: `session/Leaderboard`, `LeaderboardTest`, start/end screens

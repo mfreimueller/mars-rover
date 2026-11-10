@@ -22,6 +22,7 @@ import marsrover.view.Fonts;
 import marsrover.view.Game;
 import marsrover.view.LevelScreen;
 import javafx.scene.layout.Pane;
+import marsrover.session.Leaderboard;
 import marsrover.session.NameFilter;
 
 /**
@@ -31,6 +32,7 @@ import marsrover.session.NameFilter;
  * {@code -Ddemo=true} preload the reference solution,
  * {@code -Dautorun=true} press Run right away,
  * {@code -Dscreen=end} show the end screen with a made-up session,
+ * {@code -Dleaderboard=file.json} use another leaderboard file (default data/leaderboard.json),
  * {@code -Dsnapshot=file.png} see {@link DevSnapshot}.
  */
 public class App extends Application {
@@ -72,6 +74,7 @@ public class App extends Application {
                 Fonts.monoStylesheet());
 
         Game game = new Game(scene, levels, NameFilter.fromFile(Path.of("data", "badwords.txt")),
+                Leaderboard.load(Path.of(System.getProperty("leaderboard", "data/leaderboard.json"))),
                 System::currentTimeMillis, Boolean.getBoolean("demo") ? DEMO_PROGRAMS : Map.of());
         Integer level = Integer.getInteger("level");
         if ("end".equals(System.getProperty("screen"))) {

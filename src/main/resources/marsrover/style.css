@@ -394,3 +394,51 @@
     -fx-font-size: 30px;
     -fx-text-fill: #f0cdb4;
 }
+
+/* ---- leaderboard ---- */
+
+.leaderboard {
+    -fx-padding: 32 40 32 40;
+}
+
+.leaderboard-title {
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffcc00;
+}
+
+.leaderboard-empty {
+    -fx-font-size: 24px;
+    -fx-text-fill: #b08a76;
+    -fx-max-width: 460px;
+}
+
+.lb-cell {
+    -fx-font-size: 28px;
+    -fx-padding: 4 8 4 8;
+}
+
+.lb-rank {
+    -fx-text-fill: #b08a76;
+}
+
+.lb-stars {
+    -fx-text-fill: #ffcc00;
+    -fx-font-weight: bold;
+}
+
+.lb-time {
+    -fx-text-fill: #d0a890;
+}
+
+.lb-you {
+    -fx-background-color: rgba(255, 204, 0, 0.25);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.end-rank {
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #9be29b;
+}

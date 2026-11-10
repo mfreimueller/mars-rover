@@ -6,6 +6,7 @@ import java.util.function.LongSupplier;
 import javafx.scene.Scene;
 import marsrover.model.Level;
 import marsrover.program.Block;
+import marsrover.session.Leaderboard;
 import marsrover.session.NameFilter;
 import marsrover.session.Session;
 
@@ -17,6 +18,7 @@ public final class Game {
 
     private final Scene scene;
     private final NameFilter nameFilter;
+    private final Leaderboard leaderboard;
     private final LongSupplier clock;
     private final Map<String, List<Block>> preload; // dev only: -Ddemo=true
     private List<Level> levels;
@@ -24,9 +26,10 @@ public final class Game {
     private Session session;
     private LevelScreen levelScreen;
 
-    public Game(Scene scene, List<Level> levels, NameFilter nameFilter, LongSupplier clock,
-                Map<String, List<Block>> preload) {
+    public Game(Scene scene, List<Level> levels, NameFilter nameFilter, Leaderboard leaderboard,
+                LongSupplier clock, Map<String, List<Block>> preload) {
         this.scene = scene;
+        this.leaderboard = leaderboard;
         this.levels = levels;
         this.nameFilter = nameFilter;
         this.clock = clock;
@@ -36,7 +39,7 @@ public final class Game {
     public void showStart() {
         session = null;
         levelScreen = null;
-        scene.setRoot(new StartScreen(nameFilter, null, this::startSession));
+        scene.setRoot(new StartScreen(nameFilter, new LeaderboardView(leaderboard, 0), this::startSession));
     }
 
     public void startSession(String name) {
@@ -83,12 +86,31 @@ public final class Game {
         }
     }
 
-    /** Shows the summary. Also the place where T10 stores the result. */
+    /** Stores the result and shows the summary with the leaderboard. */
     private void endSession() {
-        Session.Result result = session.result(clock.getAsLong());
         Session finished = session;
+        Session.Result result = finished.result(clock.getAsLong());
+        int rank = store(result);
+        session = null;
         levelScreen = null;
-        scene.setRoot(new EndScreen(finished, result, levels, null, this::showStart));
+        scene.setRoot(new EndScreen(finished, result, rank, levels,
+                new LeaderboardView(leaderboard, rank), this::showStart));
+    }
+
+    /**
+     * Ends a session without the end screen (inactivity reset): the result still counts
+     * if at least one level was solved. Then back to the start screen.
+     */
+    public void abortSession() {
+        if (session != null) {
+            store(session.result(clock.getAsLong()));
+        }
+        showStart();
+    }
+
+    /** Returns the rank, or 0 if nothing was solved and nothing was stored. */
+    private int store(Session.Result result) {
+        return result.levelsSolved() > 0 ? leaderboard.add(result) : 0;
     }
 
     public LevelScreen levelScreen() {

@@ -28,6 +28,8 @@ public final class Texts {
     public static final String NAME_PLACEHOLDER = "Dein Name";
     public static final String START_MISSION = "Mission starten  ▶";
     public static final String DONE = "Fertig";
+    public static final String LEADERBOARD = "🏆 Bestenliste";
+    public static final String LEADERBOARD_EMPTY = "Noch niemand hier – sei die Erste oder der Erste!";
 
         private Texts() {
     }
@@ -107,8 +109,17 @@ public final class Texts {
 
     /** e.g. "Zeit: 3:07" */
     public static String time(long millis) {
+        return "Zeit: " + clock(millis);
+    }
+
+    /** e.g. "3:07" */
+    public static String clock(long millis) {
         long seconds = millis / 1000;
-        return "Zeit: " + seconds / 60 + ":" + String.format("%02d", seconds % 60);
+        return seconds / 60 + ":" + String.format("%02d", seconds % 60);
+    }
+
+    public static String rank(int rank) {
+        return rank == 1 ? "🥇 Du bist auf Platz 1!" : "Du bist auf Platz " + rank + "!";
     }
 
     public static String battery(int left, int total) {
