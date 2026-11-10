@@ -77,7 +77,7 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
 
 ## Phase 4 – Ship
 
-- [ ] **T13: Package + rehearsal** (S)
+- [ ] **T13: Package + rehearsal** (S) – packaging, TESTPLAN, LEVELS guide and README done; rehearsal on the kiosk PC still open
   - Acceptance: a distributable folder (`mars-rover.jar`, `levels/`, `data/`, `start.bat`); `docs/TESTPLAN.md` (manual checklist); `docs/LEVELS.md` (how students write levels).
   - Verify: SPEC §11 success criteria 1–6 on the kiosk PC, including 30 min of random abuse.
 
