@@ -17,7 +17,6 @@ import marsrover.program.Block.Condition;
 import marsrover.program.Block.If;
 import marsrover.program.Block.Repeat;
 import marsrover.program.Block.While;
-import marsrover.program.Program;
 import marsrover.view.DevSnapshot;
 import marsrover.view.Fonts;
 import marsrover.view.LevelScreen;
@@ -26,6 +25,7 @@ import marsrover.view.LevelScreen;
  * Dev options (system properties):
  * {@code -Dkiosk=false} windowed instead of full screen,
  * {@code -Dlevel=N} start at level N (1-based),
+ * {@code -Ddemo=true} preload the reference solution,
  * {@code -Dautorun=true} press Run right away,
  * {@code -Dsnapshot=file.png} see {@link DevSnapshot}.
  */
@@ -34,7 +34,7 @@ public class App extends Application {
     public static final double WIDTH = 1920;
     public static final double HEIGHT = 1080;
 
-    // TODO(T6): replaced by the drag & drop editor.
+    /** Reference solutions, only preloaded with {@code -Ddemo=true} (dev snapshots). */
     private static final Block VOR = new Command(Action.VOR);
     private static final Map<String, List<Block>> DEMO_PROGRAMS = Map.of(
             "01-landing", List.of(VOR, VOR, new Command(Action.PROBE_NEHMEN), new Command(Action.LINKS_UM), VOR, VOR),
@@ -63,9 +63,11 @@ public class App extends Application {
         }
         int index = Math.clamp(Integer.getInteger("level", 2) - 1, 0, loaded.levels().size() - 1);
         Level level = loaded.levels().get(index);
-        Program demo = new Program(DEMO_PROGRAMS.getOrDefault(level.id(), List.of()));
+        List<Block> initial = Boolean.getBoolean("demo")
+                ? DEMO_PROGRAMS.getOrDefault(level.id(), List.of())
+                : List.of();
 
-        LevelScreen screen = new LevelScreen(level, () -> demo);
+        LevelScreen screen = new LevelScreen(level, initial);
         Scene scene = new Scene(screen, WIDTH, HEIGHT);
         scene.getStylesheets().addAll(
                 App.class.getResource("/marsrover/style.css").toExternalForm(),

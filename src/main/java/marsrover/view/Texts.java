@@ -12,6 +12,8 @@ public final class Texts {
     public static final String[] SPEEDS = {"langsam", "normal", "schnell"};
     public static final String BATTERY = "Batterie";
     public static final String PROGRAM = "Dein Programm";
+    public static final String PALETTE = "Befehle";
+    public static final String DROP_HERE = "Zieh Befehle hierher";
     public static final String SUCCESS = "Mission geschafft!";
 
     private Texts() {

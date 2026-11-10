@@ -33,7 +33,7 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
   - Verify: manual – level 2 runs with its reference solution at all speeds; Reset restores the start.
   - Files: `view/LevelScreen`, `view/WorldCanvas`, `view/CodeView`, `view/Texts`
 
-- [ ] **T6: Editor – drag & drop** (M) – depends on T5
+- [x] **T6: Editor – drag & drop** (M) – depends on T5
   - Acceptance: palette from the level; dragging copies a block into the program; drop gap and depth chosen by mouse position, with a visible drop indicator; blocks can be moved within the program; auto-indented valid Java; rows ≥ 40 px; editor → AST for Run.
   - Verify: `EditorModelTest` (insert/move/nesting → expected AST + lines); manual drag test.
   - Files: `view/EditorPane`, `program/EditorModel` (pure), `EditorModelTest`

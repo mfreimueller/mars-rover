@@ -1,6 +1,6 @@
 package marsrover.view;
 
-import java.util.function.Supplier;
+import java.util.List;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
@@ -9,7 +9,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -20,13 +19,14 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import marsrover.model.Level;
+import marsrover.program.Block;
 import marsrover.program.Interpreter;
 import marsrover.program.Program;
 import marsrover.program.StepResult;
 import marsrover.program.StepResult.Status;
 
 /**
- * One level: map in the middle, program on the right, controls at the bottom.
+ * One level: palette left, map in the middle, program right, controls at the bottom.
  * Run is a {@link Timeline} that calls {@link Interpreter#step()} at the chosen speed.
  */
 public final class LevelScreen extends BorderPane {
@@ -34,10 +34,9 @@ public final class LevelScreen extends BorderPane {
     private static final double[] SPEED_MS = {600, 300, 100};
 
     private final Level level;
-    private final Supplier<Program> programSource;
+    private final EditorPane editor;
 
     private final WorldCanvas worldCanvas = new WorldCanvas();
-    private final CodeView codeView = new CodeView();
     private final ProgressBar batteryBar = new ProgressBar(1);
     private final Label batteryLabel = new Label();
     private final Label message = new Label();
@@ -48,14 +47,17 @@ public final class LevelScreen extends BorderPane {
     private Interpreter interpreter;
     private Timeline timeline;
 
-    public LevelScreen(Level level, Supplier<Program> programSource) {
+    public LevelScreen(Level level, List<Block> initialProgram) {
         this.level = level;
-        this.programSource = programSource;
+        this.editor = new EditorPane(level, initialProgram, this::reset);
         getStyleClass().add("level-screen");
 
         setTop(header());
+        setLeft(editor.palettePanel());
+        BorderPane.setMargin(editor.palettePanel(), new Insets(12, 0, 12, 32));
         setCenter(worldPane());
-        setRight(programPane());
+        setRight(editor.programPanel());
+        BorderPane.setMargin(editor.programPanel(), new Insets(12, 32, 12, 0));
         setBottom(controls());
 
         addEventFilter(KeyEvent.KEY_PRESSED, this::onKey);
@@ -76,22 +78,8 @@ public final class LevelScreen extends BorderPane {
     }
 
     private Node worldPane() {
-        BorderPane.setMargin(worldCanvas, new Insets(12, 16, 12, 32));
+        BorderPane.setMargin(worldCanvas, new Insets(12, 24, 12, 24));
         return worldCanvas;
-    }
-
-    private Node programPane() {
-        Label heading = new Label(Texts.PROGRAM);
-        heading.getStyleClass().add("panel-heading");
-        ScrollPane scroll = new ScrollPane(codeView);
-        scroll.setFitToWidth(true);
-        scroll.getStyleClass().add("code-scroll");
-        VBox.setVgrow(scroll, Priority.ALWAYS);
-        VBox panel = new VBox(12, heading, scroll);
-        panel.getStyleClass().add("panel");
-        panel.setPrefWidth(720);
-        BorderPane.setMargin(panel, new Insets(12, 32, 12, 16));
-        return panel;
     }
 
     private Node controls() {
@@ -178,8 +166,7 @@ public final class LevelScreen extends BorderPane {
     /** Back to the start position; the program is kept. */
     public void reset() {
         stopTimeline();
-        program = programSource.get();
-        codeView.show(program);
+        program = editor.program();
         interpreter = new Interpreter(level, program);
         show(interpreter.current());
     }
@@ -195,6 +182,7 @@ public final class LevelScreen extends BorderPane {
             }
         }));
         timeline.setCycleCount(Timeline.INDEFINITE);
+        editor.setLocked(true);
         timeline.play();
     }
 
@@ -203,6 +191,7 @@ public final class LevelScreen extends BorderPane {
             timeline.stop();
             timeline = null;
         }
+        editor.setLocked(false);
     }
 
     private void show(StepResult r) {
@@ -215,22 +204,22 @@ public final class LevelScreen extends BorderPane {
         switch (r.status()) {
             case READY -> {
                 message.setText("");
-                codeView.highlight(0);
+                editor.highlight(0);
             }
             case RUNNING -> {
                 message.setText("");
-                codeView.highlight(r.line());
+                editor.highlight(r.line());
             }
             case SUCCESS -> {
                 message.setText(Texts.SUCCESS);
                 message.getStyleClass().add("success");
-                codeView.highlight(0);
+                editor.highlight(0);
             }
             case FAILED -> {
                 message.setText(Texts.failure(r.failure(), r.samplesLeft()));
                 message.getStyleClass().add("error");
                 hint.setText(Texts.javaHint(r.line(), program.lineText(r.line())));
-                codeView.markFailed(r.line());
+                editor.markFailed(r.line());
             }
         }
     }

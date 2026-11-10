@@ -47,10 +47,6 @@
     -fx-padding: 0 12 0 0;
 }
 
-.code-line .code-text {
-    -fx-font-size: 26px;
-    -fx-text-fill: #f4e1d2;
-}
 
 .code-line .line-number {
     -fx-font-size: 20px;
@@ -58,21 +54,19 @@
 }
 
 .code-line.current {
-    -fx-background-color: #ffcc00;
+    -fx-background-color: rgba(255, 204, 0, 0.28);
 }
 
-.code-line.current .code-text,
 .code-line.current .line-number {
-    -fx-text-fill: #1a0d08;
+    -fx-text-fill: #ffcc00;
 }
 
 .code-line.failed {
-    -fx-background-color: #c62828;
+    -fx-background-color: rgba(198, 40, 40, 0.35);
 }
 
-.code-line.failed .code-text,
 .code-line.failed .line-number {
-    -fx-text-fill: white;
+    -fx-text-fill: #ff8a80;
 }
 
 /* ---- controls ---- */
@@ -146,4 +140,76 @@
 .java-hint {
     -fx-font-size: 20px;
     -fx-text-fill: #d0a890;
+}
+
+/* ---- editor blocks ---- */
+
+.block {
+    -fx-font-size: 24px;
+    -fx-text-fill: white;
+    -fx-padding: 6 16 6 16;
+    -fx-background-radius: 10;
+    -fx-cursor: open-hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 4, 0, 0, 2);
+}
+
+.block-command {
+    -fx-background-color: #d9622b;
+}
+
+.block-loop {
+    -fx-background-color: #7b4bb7;
+}
+
+.block-if {
+    -fx-background-color: #2f7fbf;
+}
+
+.block-brace {
+    -fx-effect: null;
+    -fx-opacity: 0.85;
+}
+
+.palette .block:hover {
+    -fx-opacity: 0.85;
+}
+
+.palette.trash {
+    -fx-background-color: #5a1f1a;
+    -fx-border-color: #ff8a80;
+    -fx-border-width: 3;
+    -fx-border-radius: 14;
+    -fx-border-style: segments(12, 8);
+}
+
+.drop-indicator {
+    -fx-background-color: #ffcc00;
+    -fx-background-radius: 3;
+}
+
+.placeholder {
+    -fx-font-size: 24px;
+    -fx-text-fill: #a07a66;
+    -fx-border-color: #7a4a38;
+    -fx-border-width: 3;
+    -fx-border-style: segments(14, 10);
+    -fx-border-radius: 12;
+}
+
+.code-line.current .block {
+    -fx-border-color: #ffcc00;
+    -fx-border-width: 3;
+    -fx-border-radius: 10;
+}
+
+.code-line.failed .block {
+    -fx-background-color: #c62828;
+}
+
+.program:locked .block {
+    -fx-cursor: default;
+}
+
+.palette .block {
+    -fx-font-size: 22px;
 }
