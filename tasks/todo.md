@@ -19,8 +19,8 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
   - Verify: `InterpreterTest` covers each command, each failure, nesting, the guard, win/lose and line numbers.
   - Files: `program/*`, `InterpreterTest`, `PaletteEntryTest`
 
-- [ ] **T4: Default levels 1–4 + Stars** (S) – depends on T3
-  - Acceptance: `levels/01-landing.json` … `04-unknown-distance.json` (also copied to resources); `Stars` calculation; a reference solution per level.
+- [x] **T4: Default levels 1–4 + Stars** (S) – depends on T3
+  - Acceptance: `levels/01-landing.json` … `04-unknown-distance.json` (packed into the jar by Maven); `Stars` calculation; a reference solution per level.
   - Verify: `DefaultLevelsTest` runs each reference solution and asserts 3★.
   - Files: `levels/*.json`, `model/Stars.java`, `DefaultLevelsTest`
 

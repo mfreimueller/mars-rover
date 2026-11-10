@@ -1,0 +1,16 @@
+{
+  "id": "01-landing",
+  "title": "Landung",
+  "intro": "Dein Rover ist gelandet! Fahr zur Probe, nimm sie mit und bring sie zur Basis. Zieh die Befehle von links nach rechts.",
+  "width": 5,
+  "height": 3,
+  "tiles": [
+    "GGBGR",
+    "GRGGR",
+    "GGSGG"
+  ],
+  "rover": { "x": 0, "y": 2, "dir": "E" },
+  "battery": 10,
+  "palette": ["vor", "linksUm", "probeNehmen"],
+  "stars": { "battery": 6, "blocks": 6 }
+}

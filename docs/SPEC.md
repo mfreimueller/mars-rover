@@ -57,7 +57,7 @@ src/main/java/marsrover/
   program/                      → Block AST, Interpreter, StepResult, RunError
   session/                      → Session, Leaderboard, NameFilter, Config
   view/                         → screens, EditorPane, WorldCanvas, AdminDialog
-src/main/resources/levels/      → bundled copies of default levels (fallback if levels/ missing)
+(levels/ is also packed into the jar as a fallback when no levels/ folder is next to it)
 src/test/java/marsrover/        → mirrors main packages
 ```
 `model` and `program` must not import JavaFX. `view` depends on them, never the reverse.

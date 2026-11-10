@@ -1,0 +1,18 @@
+{
+  "id": "03-crater-field",
+  "title": "Kraterfeld",
+  "intro": "Krater! Mit if (vornKrater()) prüft der Rover, ob vor ihm ein Krater liegt – und weicht nur dann aus.",
+  "width": 7,
+  "height": 4,
+  "tiles": [
+    "RRRRRGB",
+    "RRRGGGC",
+    "RGGGCRR",
+    "GGCRRRR"
+  ],
+  "rover": { "x": 0, "y": 3, "dir": "E" },
+  "battery": 25,
+  "palette": ["vor", "linksUm", "rechtsUm", "for:3", "if:vornKrater", "probeNehmen"],
+  "maxBlocks": 8,
+  "stars": { "battery": 15, "blocks": 6 }
+}

@@ -80,6 +80,16 @@
 
     <build>
         <finalName>mars-rover</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!-- Default levels are bundled as a fallback when no levels/ folder is next to the jar. -->
+            <resource>
+                <directory>levels</directory>
+                <targetPath>levels</targetPath>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

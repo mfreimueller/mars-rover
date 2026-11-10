@@ -1,0 +1,17 @@
+{
+  "id": "02-long-road",
+  "title": "Lange Straße",
+  "intro": "Die Basis ist weit weg. Willst du wirklich 9-mal vor() ziehen? Du hast nur 4 Blöcke – eine for-Schleife wiederholt Befehle für dich.",
+  "width": 10,
+  "height": 3,
+  "tiles": [
+    "RRRRRRRRRR",
+    "GGGGGGGGGB",
+    "RRRRRRRRRR"
+  ],
+  "rover": { "x": 0, "y": 1, "dir": "E" },
+  "battery": 20,
+  "palette": ["vor", "linksUm", "for:5", "probeNehmen"],
+  "maxBlocks": 4,
+  "stars": { "battery": 9, "blocks": 2 }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "04-unknown-distance",
+  "title": "Unbekannte Entfernung",
+  "intro": "Wie weit ist es bis zur Wand? Egal! while (vornFrei()) fährt so lange, bis etwas im Weg ist.",
+  "width": 8,
+  "height": 5,
+  "tiles": [
+    "SGGGGGGB",
+    "GRGGRGGR",
+    "GGCGGRGG",
+    "GRGGDGGR",
+    "GGGRGGCG"
+  ],
+  "rover": { "x": 0, "y": 4, "dir": "N" },
+  "battery": 20,
+  "palette": ["vor", "linksUm", "rechtsUm", "probeNehmen", "while:vornFrei", "if:vornKrater"],
+  "maxBlocks": 8,
+  "stars": { "battery": 13, "blocks": 6 }
+}
