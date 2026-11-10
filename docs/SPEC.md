@@ -113,6 +113,10 @@ The palette entries in a level file are strings:
 ### Execution
 - The interpreter is a pure, steppable machine: `step()` executes until the next **action**
   and returns `StepResult(line, worldSnapshot, status)`. No threads in `program`.
+- The interpreter reports a `Failure` code (ROCK, CRATER, NO_SAMPLE, BATTERY_EMPTY, ENDLESS_LOOP,
+  SAMPLES_LEFT, NOT_AT_BASE). `view/Texts` turns it into the German messages above.
+- `vornFrei()` is false in front of rocks, craters and the map edge.
+- Nested `for` loops use `i`, `j`, `k` … so the shown code stays valid Java.
 - Run = a JavaFX `Timeline` calling `step()` every 600 / 300 / 100 ms (slow/normal/fast).
 - Step (`F6`) = one `step()`. The editor is locked while a run is in progress.
 - Reset (`R`) restores world and rover and keeps the program.

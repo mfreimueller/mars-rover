@@ -14,7 +14,7 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
   - Verify: tests for one valid level and each validation rule.
   - Files: `model/*`, `LevelLoaderTest`
 
-- [ ] **T3: Interpreter** (M) – depends on T2
+- [x] **T3: Interpreter** (M) – depends on T2
   - Acceptance: sealed `Block` AST; palette-entry parser (`"for:3"`, `"while:!amZiel"`); steppable `Interpreter.step()` → `StepResult(line, world, status)`; all rules from SPEC §5 (costs, dust, failures + German messages, 1000-step guard, win check at end).
   - Verify: `InterpreterTest` covers each command, each failure, nesting, the guard, win/lose and line numbers.
   - Files: `program/*`, `InterpreterTest`, `PaletteEntryTest`
