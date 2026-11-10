@@ -1,0 +1,149 @@
+/* Mars Rover – kiosk styling. Targets 1920×1080; minimum interactive height 40 px.
+   JavaFX CSS has no font fallback lists: the code font is chosen in App (see Fonts). */
+
+.root {
+    -fx-background-color: #2b1610;
+    -fx-font-size: 20px;
+    -fx-text-fill: #f4e1d2;
+}
+
+.label {
+    -fx-text-fill: #f4e1d2;
+}
+
+.title {
+    -fx-font-size: 44px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffd8b8;
+}
+
+.intro {
+    -fx-font-size: 24px;
+    -fx-text-fill: #f0cdb4;
+}
+
+.panel {
+    -fx-background-color: #3b2018;
+    -fx-background-radius: 14;
+    -fx-padding: 18;
+}
+
+.panel-heading {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffb68a;
+}
+
+/* ---- code ---- */
+
+.code-scroll, .code-scroll > .viewport {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.code-line {
+    -fx-min-height: 44px;
+    -fx-background-radius: 8;
+    -fx-padding: 0 12 0 0;
+}
+
+.code-line .code-text {
+    -fx-font-size: 26px;
+    -fx-text-fill: #f4e1d2;
+}
+
+.code-line .line-number {
+    -fx-font-size: 20px;
+    -fx-text-fill: #8a6a5a;
+}
+
+.code-line.current {
+    -fx-background-color: #ffcc00;
+}
+
+.code-line.current .code-text,
+.code-line.current .line-number {
+    -fx-text-fill: #1a0d08;
+}
+
+.code-line.failed {
+    -fx-background-color: #c62828;
+}
+
+.code-line.failed .code-text,
+.code-line.failed .line-number {
+    -fx-text-fill: white;
+}
+
+/* ---- controls ---- */
+
+.button {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-min-height: 60px;
+    -fx-min-width: 160px;
+    -fx-background-radius: 12;
+    -fx-background-color: #e07a3c;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #f08a4c;
+}
+
+.button:pressed {
+    -fx-background-color: #c0622c;
+}
+
+.button.run {
+    -fx-background-color: #3c9a4c;
+}
+
+.button.run:hover {
+    -fx-background-color: #4cb05c;
+}
+
+.control-label {
+    -fx-font-size: 20px;
+    -fx-text-fill: #f0cdb4;
+}
+
+.slider .track {
+    -fx-background-color: #5a3022;
+}
+
+.slider .thumb {
+    -fx-background-color: #ffcc00;
+    -fx-pref-width: 28px;
+    -fx-pref-height: 28px;
+}
+
+.battery .bar {
+    -fx-background-color: #57d05f;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+}
+
+.battery .track {
+    -fx-background-color: #5a3022;
+    -fx-background-radius: 6;
+}
+
+.message {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.message.error {
+    -fx-text-fill: #ff8a80;
+}
+
+.message.success {
+    -fx-text-fill: #9be29b;
+}
+
+.java-hint {
+    -fx-font-size: 20px;
+    -fx-text-fill: #d0a890;
+}

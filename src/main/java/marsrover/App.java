@@ -1,12 +1,52 @@
 package marsrover;
 
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import marsrover.model.Action;
+import marsrover.model.Level;
+import marsrover.model.LevelLoader;
+import marsrover.model.Sensor;
+import marsrover.program.Block;
+import marsrover.program.Block.Command;
+import marsrover.program.Block.Condition;
+import marsrover.program.Block.If;
+import marsrover.program.Block.Repeat;
+import marsrover.program.Block.While;
+import marsrover.program.Program;
+import marsrover.view.DevSnapshot;
+import marsrover.view.Fonts;
+import marsrover.view.LevelScreen;
 
+/**
+ * Dev options (system properties):
+ * {@code -Dkiosk=false} windowed instead of full screen,
+ * {@code -Dlevel=N} start at level N (1-based),
+ * {@code -Dautorun=true} press Run right away,
+ * {@code -Dsnapshot=file.png} see {@link DevSnapshot}.
+ */
 public class App extends Application {
+
+    public static final double WIDTH = 1920;
+    public static final double HEIGHT = 1080;
+
+    // TODO(T6): replaced by the drag & drop editor.
+    private static final Block VOR = new Command(Action.VOR);
+    private static final Map<String, List<Block>> DEMO_PROGRAMS = Map.of(
+            "01-landing", List.of(VOR, VOR, new Command(Action.PROBE_NEHMEN), new Command(Action.LINKS_UM), VOR, VOR),
+            "02-long-road", List.of(new Repeat(9, List.of(VOR))),
+            "03-crater-field", List.of(new Repeat(6, List.of(
+                    new If(new Condition(Sensor.VORN_KRATER, false), List.of(
+                            new Command(Action.LINKS_UM), VOR, new Command(Action.RECHTS_UM)), false, List.of()),
+                    VOR))),
+            "04-unknown-distance", List.of(
+                    new While(new Condition(Sensor.VORN_FREI, false), List.of(VOR)),
+                    new Command(Action.PROBE_NEHMEN), new Command(Action.RECHTS_UM),
+                    new While(new Condition(Sensor.VORN_FREI, false), List.of(VOR))));
 
     public static void main(String[] args) {
         launch(args);
@@ -14,15 +54,34 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        Label title = new Label("Mars Rover");
-        title.setStyle("-fx-font-size: 72px; -fx-text-fill: #f4e1d2; -fx-font-weight: bold;");
+        LevelLoader.Result loaded = LevelLoader.loadFolder(Path.of("levels"));
+        loaded.errors().forEach(e -> System.err.println("Level " + e.file() + ": " + e.reason()));
+        if (loaded.levels().isEmpty()) {
+            System.err.println("Keine Levels gefunden.");
+            Platform.exit();
+            return;
+        }
+        int index = Math.clamp(Integer.getInteger("level", 2) - 1, 0, loaded.levels().size() - 1);
+        Level level = loaded.levels().get(index);
+        Program demo = new Program(DEMO_PROGRAMS.getOrDefault(level.id(), List.of()));
 
-        StackPane root = new StackPane(title);
-        root.setStyle("-fx-background-color: #3b1a12;");
+        LevelScreen screen = new LevelScreen(level, () -> demo);
+        Scene scene = new Scene(screen, WIDTH, HEIGHT);
+        scene.getStylesheets().addAll(
+                App.class.getResource("/marsrover/style.css").toExternalForm(),
+                Fonts.monoStylesheet());
+
+        if (Boolean.getBoolean("autorun")) {
+            screen.run();
+        }
+        if (DevSnapshot.scheduleIfRequested(scene)) {
+            return; // render off-screen at exactly 1920×1080
+        }
 
         stage.setTitle("Mars Rover");
-        stage.setScene(new Scene(root, 1920, 1080));
-        stage.setFullScreen(true);
+        stage.setScene(scene);
+        stage.setFullScreenExitHint("");
+        stage.setFullScreen(!"false".equals(System.getProperty("kiosk")));
         stage.show();
     }
 }

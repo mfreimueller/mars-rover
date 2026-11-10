@@ -28,7 +28,7 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
 
 ## Phase 2 – Playable level
 
-- [ ] **T5: Level screen with execution** (M) – depends on T4
+- [x] **T5: Level screen with execution** (M) – depends on T4
   - Acceptance: `WorldCanvas` draws tiles, rover direction and battery. Code pane shows a hard-coded program with line numbers. Run/Step/Reset and 3-speed slider animate it and highlight the current line.
   - Verify: manual – level 2 runs with its reference solution at all speeds; Reset restores the start.
   - Files: `view/LevelScreen`, `view/WorldCanvas`, `view/CodeView`, `view/Texts`
