@@ -1,0 +1,6 @@
+target/
+data/leaderboard.json
+.idea/
+*.iml
+.vscode/
+.DS_Store
