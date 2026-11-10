@@ -52,7 +52,8 @@ data/config.properties          → adminPin, inactivitySeconds (defaults: 1234,
 data/badwords.txt               → one lowercase word per line
 src/main/java/marsrover/
   App.java, Launcher.java       → Launcher.main is the shaded jar entry (doesn't extend Application)
-  model/                        → Tile, Direction, World, Rover, Level, LevelLoader, Stars
+  model/                        → Tile, Direction, World, Rover, Level, LevelLoader, Stars,
+                                  Action, Sensor, PaletteEntry (level-file vocabulary; program builds on it)
   program/                      → Block AST, Interpreter, StepResult, RunError
   session/                      → Session, Leaderboard, NameFilter, Config
   view/                         → screens, EditorPane, WorldCanvas, AdminDialog

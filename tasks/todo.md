@@ -9,7 +9,7 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
   - Verify: `mvn -q package && java -jar target/mars-rover.jar` shows the window; one dummy test passes.
   - Files: `pom.xml`, `.gitignore`, `App.java`, `Launcher.java`, one test
 
-- [ ] **T2: Model + LevelLoader** (M) – depends on T1
+- [x] **T2: Model + LevelLoader** (M) – depends on T1
   - Acceptance: `Tile`, `Direction`, `World`, `Rover`, `Level` records; `LevelLoader` loads a folder in filename order and returns valid levels plus `(file, reason)` errors for every rule in SPEC §6.
   - Verify: tests for one valid level and each validation rule.
   - Files: `model/*`, `LevelLoaderTest`
