@@ -5,7 +5,8 @@ import java.util.Map;
 
 /**
  * One visitor's run through the levels. Keeps the best stars per level.
- * Time is passed in (milliseconds) so tests don't depend on the clock.
+ * The session time runs from the start to the last solve, so idle time before an
+ * inactivity reset does not count. Times are passed in (ms) so tests don't depend on the clock.
  */
 public final class Session {
 
@@ -16,6 +17,7 @@ public final class Session {
     private final long startMillis;
     private final Map<String, Integer> bestStars = new LinkedHashMap<>();
     private int currentLevel;
+    private long lastSolvedMillis;
 
     public Session(String name, long startMillis) {
         this.name = name;
@@ -35,8 +37,9 @@ public final class Session {
         currentLevel++;
     }
 
-    public void recordSolved(String levelId, int stars) {
+    public void recordSolved(String levelId, int stars, long nowMillis) {
         bestStars.merge(levelId, stars, Math::max);
+        lastSolvedMillis = nowMillis;
     }
 
     public int stars(String levelId) {
@@ -51,7 +54,8 @@ public final class Session {
         return bestStars.size();
     }
 
-    public Result result(long nowMillis) {
-        return new Result(name, totalStars(), Math.max(0, nowMillis - startMillis), levelsSolved());
+    public Result result() {
+        long time = levelsSolved() == 0 ? 0 : Math.max(0, lastSolvedMillis - startMillis);
+        return new Result(name, totalStars(), time, levelsSolved());
     }
 }

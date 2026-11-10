@@ -62,7 +62,7 @@ public final class Game {
         session = new Session("Ada", clock.getAsLong() - 187_000);
         int[] stars = {3, 2, 3, 1};
         for (int i = 0; i < levels.size(); i++) {
-            session.recordSolved(levels.get(i).id(), stars[i % stars.length]);
+            session.recordSolved(levels.get(i).id(), stars[i % stars.length], clock.getAsLong());
         }
         endSession();
     }
@@ -72,7 +72,7 @@ public final class Game {
         String progress = Texts.progress(session.name(), session.currentLevel() + 1, levels.size());
         boolean last = session.currentLevel() == levels.size() - 1;
         levelScreen = new LevelScreen(level, preload.getOrDefault(level.id(), List.of()), progress, last,
-                stars -> session.recordSolved(level.id(), stars),
+                stars -> session.recordSolved(level.id(), stars, clock.getAsLong()),
                 this::nextLevel);
         scene.setRoot(levelScreen);
     }
@@ -89,7 +89,7 @@ public final class Game {
     /** Stores the result and shows the summary with the leaderboard. */
     private void endSession() {
         Session finished = session;
-        Session.Result result = finished.result(clock.getAsLong());
+        Session.Result result = finished.result();
         int rank = store(result);
         session = null;
         levelScreen = null;
@@ -103,7 +103,7 @@ public final class Game {
      */
     public void abortSession() {
         if (session != null) {
-            store(session.result(clock.getAsLong()));
+            store(session.result());
         }
         showStart();
     }

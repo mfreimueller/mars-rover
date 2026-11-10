@@ -1,5 +1,6 @@
 target/
 data/leaderboard.json
+data/errors.log
 .idea/
 *.iml
 .vscode/

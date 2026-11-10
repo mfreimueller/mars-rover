@@ -20,8 +20,10 @@ import marsrover.program.Block.While;
 import marsrover.view.DevSnapshot;
 import marsrover.view.Fonts;
 import marsrover.view.Game;
+import marsrover.view.Kiosk;
 import marsrover.view.LevelScreen;
 import javafx.scene.layout.Pane;
+import marsrover.session.Config;
 import marsrover.session.Leaderboard;
 import marsrover.session.NameFilter;
 
@@ -32,6 +34,7 @@ import marsrover.session.NameFilter;
  * {@code -Ddemo=true} preload the reference solution,
  * {@code -Dautorun=true} press Run right away,
  * {@code -Dscreen=end} show the end screen with a made-up session,
+ * {@code -Dconfig=file.properties} use another config file (default data/config.properties),
  * {@code -Dleaderboard=file.json} use another leaderboard file (default data/leaderboard.json),
  * {@code -Dsnapshot=file.png} see {@link DevSnapshot}.
  */
@@ -73,6 +76,7 @@ public class App extends Application {
                 App.class.getResource("/marsrover/style.css").toExternalForm(),
                 Fonts.monoStylesheet());
 
+        Config config = Config.load(Path.of(System.getProperty("config", "data/config.properties")));
         Game game = new Game(scene, levels, NameFilter.fromFile(Path.of("data", "badwords.txt")),
                 Leaderboard.load(Path.of(System.getProperty("leaderboard", "data/leaderboard.json"))),
                 System::currentTimeMillis, Boolean.getBoolean("demo") ? DEMO_PROGRAMS : Map.of());
@@ -87,14 +91,20 @@ public class App extends Application {
                 screen.run();
             }
         }
+        Kiosk.inactivityReset(scene, config.inactivitySeconds(),
+                () -> game.levelScreen() != null && game.levelScreen().isRunning(),
+                game::abortSession);
+        Kiosk.safetyNet(Path.of("data", "errors.log"), game::abortSession);
+
         if (DevSnapshot.scheduleIfRequested(scene)) {
             return; // render off-screen at exactly 1920×1080
         }
 
         stage.setTitle("Mars Rover");
         stage.setScene(scene);
-        stage.setFullScreenExitHint("");
-        stage.setFullScreen(!"false".equals(System.getProperty("kiosk")));
+        if (!"false".equals(System.getProperty("kiosk"))) {
+            Kiosk.lock(stage);
+        }
         stage.show();
     }
 }

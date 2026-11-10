@@ -63,7 +63,7 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
   - Verify: `LeaderboardTest` (ordering, cut at 10, round-trip, corrupt file).
   - Files: `session/Leaderboard`, `LeaderboardTest`, start/end screens
 
-- [ ] **T11: Kiosk lock, shortcuts, inactivity** (S) – depends on T9
+- [x] **T11: Kiosk lock, shortcuts, inactivity** (S) – depends on T9
   - Acceptance: full screen with no exit combo; close requests consumed; F5/Enter/F6/R/Del work; 60 s inactivity saves the session and returns to start; an uncaught exception returns to start.
   - Verify: manual – Esc, Alt+F4 and Cmd+Q don't exit; idle 60 s resets.
   - Files: `App`, `session/Config`, `view/*` key handling
