@@ -6,6 +6,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.ArcType;
 import javafx.scene.transform.Affine;
+import marsrover.model.Direction;
 import marsrover.model.Rover;
 import marsrover.model.Tile;
 import marsrover.model.World;
@@ -68,7 +69,7 @@ public final class WorldCanvas extends Region {
             }
         }
         if (rover != null) {
-            drawRover(g, ox + rover.x() * size, oy + rover.y() * size, size);
+            drawRover(g, ox + rover.x() * size, oy + rover.y() * size, size, rover.dir(), crashed);
         }
     }
 
@@ -132,11 +133,18 @@ public final class WorldCanvas extends Region {
         g.strokeRect(x + .5, y + .5, s - 1, s - 1);
     }
 
+    /** A rover picture, e.g. for the start screen. */
+    static Canvas roverIcon(double size, Direction dir) {
+        Canvas c = new Canvas(size, size);
+        drawRover(c.getGraphicsContext2D(), 0, 0, size, dir, false);
+        return c;
+    }
+
     /** Rover drawn facing east, rotated to its direction. */
-    private void drawRover(GraphicsContext g, double x, double y, double s) {
+    private static void drawRover(GraphicsContext g, double x, double y, double s, Direction dir, boolean crashed) {
         g.save();
         g.translate(x + s / 2, y + s / 2);
-        g.rotate(switch (rover.dir()) {
+        g.rotate(switch (dir) {
             case E -> 0;
             case S -> 90;
             case W -> 180;

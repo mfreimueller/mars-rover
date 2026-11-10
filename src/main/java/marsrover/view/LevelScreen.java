@@ -41,6 +41,8 @@ public final class LevelScreen extends StackPane {
     private static final Tile[] LEGEND_ORDER = {Tile.SAMPLE, Tile.BASE, Tile.CRATER, Tile.ROCK, Tile.DUST};
 
     private final Level level;
+    private final String progress;
+    private final boolean last;
     private final int totalSamples;
     private final EditorPane editor;
     private final IntConsumer onSolved;
@@ -61,11 +63,16 @@ public final class LevelScreen extends StackPane {
     private ResultOverlay overlay;
 
     /**
+     * @param progress shown above the title, e.g. "Pilot:in Max · Level 2 / 4"
+     * @param last     the success card then offers "Mission beenden" instead of "Nächstes Level"
      * @param onSolved called with the stars (1–3) each time the level is solved
      * @param onNext   called when the visitor presses "Nächstes Level"
      */
-    public LevelScreen(Level level, List<Block> initialProgram, IntConsumer onSolved, Runnable onNext) {
+    public LevelScreen(Level level, List<Block> initialProgram, String progress, boolean last,
+                       IntConsumer onSolved, Runnable onNext) {
         this.level = level;
+        this.progress = progress;
+        this.last = last;
         this.totalSamples = level.createWorld().count(Tile.SAMPLE);
         this.onSolved = onSolved;
         this.onNext = onNext;
@@ -89,6 +96,8 @@ public final class LevelScreen extends StackPane {
     // ---- layout ---------------------------------------------------------------------------
 
     private Node header() {
+        Label top = new Label(progress);
+        top.getStyleClass().add("progress");
         Label title = new Label(level.title());
         title.getStyleClass().add("title");
         Label intro = new Label(level.intro());
@@ -96,7 +105,7 @@ public final class LevelScreen extends StackPane {
         intro.setWrapText(true);
         Label goal = new Label(Texts.goal(totalSamples));
         goal.getStyleClass().add("goal");
-        VBox box = new VBox(6, title, intro, goal);
+        VBox box = new VBox(4, top, title, intro, goal);
         box.setPadding(new Insets(20, 32, 8, 32));
         return box;
     }
@@ -281,7 +290,8 @@ public final class LevelScreen extends StackPane {
         int blocks = program.blockCount();
         int stars = Stars.rate(true, r.batteryUsed(), blocks, level.stars());
         onSolved.accept(stars);
-        overlay = new ResultOverlay(stars, r.batteryUsed(), blocks, level.stars(), this::reset, onNext);
+        overlay = new ResultOverlay(stars, r.batteryUsed(), blocks, level.stars(),
+                last ? Texts.FINISH : Texts.NEXT_LEVEL, this::reset, onNext);
         getChildren().add(overlay);
     }
 

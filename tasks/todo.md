@@ -53,7 +53,7 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
 
 ## Phase 3 – Kiosk product
 
-- [ ] **T9: Session flow + name entry** (M) – depends on T8
+- [x] **T9: Session flow + name entry** (M) – depends on T8
   - Acceptance: start screen → name (NameFilter, `badwords.txt`) → levels 1–4 → end screen (stars, time) → start; best stars per level count.
   - Verify: `NameFilterTest`, `SessionTest` (score, tiebreak time); manual full session.
   - Files: `session/Session`, `session/NameFilter`, `view/StartScreen`, `view/EndScreen`

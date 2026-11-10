@@ -329,3 +329,68 @@
 .result-detail.missed {
     -fx-text-fill: #d0a890;
 }
+
+/* ---- start / end screens ---- */
+
+.progress {
+    -fx-font-size: 20px;
+    -fx-text-fill: #b08a76;
+}
+
+.start-title {
+    -fx-font-size: 76px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffd8b8;
+}
+
+.start-subtitle {
+    -fx-font-size: 28px;
+    -fx-text-fill: #f0cdb4;
+}
+
+.start-prompt {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffcc00;
+}
+
+.name-field {
+    -fx-font-size: 34px;
+    -fx-pref-height: 76px;
+    -fx-background-color: #f4e1d2;
+    -fx-text-fill: #2b1610;
+    -fx-prompt-text-fill: #a08070;
+    -fx-background-radius: 12;
+    -fx-padding: 0 20 0 20;
+}
+
+.start-button {
+    -fx-font-size: 30px;
+    -fx-min-height: 76px;
+    -fx-padding: 0 32 0 32;
+}
+
+.name-error {
+    -fx-font-size: 24px;
+    -fx-text-fill: #ff8a80;
+}
+
+.end-level {
+    -fx-font-size: 30px;
+}
+
+.end-stars {
+    -fx-font-size: 40px;
+    -fx-text-fill: #ffcc00;
+}
+
+.end-total {
+    -fx-font-size: 44px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffcc00;
+}
+
+.end-time {
+    -fx-font-size: 30px;
+    -fx-text-fill: #f0cdb4;
+}

@@ -15,7 +15,7 @@ import marsrover.model.Level;
 final class ResultOverlay extends StackPane {
 
     ResultOverlay(int stars, int batteryUsed, int blocks, Level.StarThresholds targets,
-                  Runnable onAgain, Runnable onNext) {
+                  String nextLabel, Runnable onAgain, Runnable onNext) {
         getStyleClass().add("result-overlay");
 
         Label title = new Label(Texts.SUCCESS);
@@ -44,7 +44,7 @@ final class ResultOverlay extends StackPane {
         Button again = new Button(Texts.AGAIN);
         again.getStyleClass().add("reset");
         again.setOnAction(e -> onAgain.run());
-        Button next = new Button(Texts.NEXT_LEVEL);
+        Button next = new Button(nextLabel);
         next.getStyleClass().add("run");
         next.setOnAction(e -> onNext.run());
         next.setDefaultButton(true);

@@ -1,0 +1,30 @@
+# One word per line, lowercase. Names containing any of these (also with spaces or
+# leetspeak like 4rsch) are rejected. Keep entries specific: "anal" would also block "Analena".
+arsch
+fick
+fotze
+hure
+schlampe
+wichser
+wixer
+bastard
+missgeburt
+spast
+schwuchtel
+nazi
+hitler
+heil
+fuck
+shit
+bitch
+dick
+cock
+pussy
+cunt
+whore
+nigger
+nigga
+penis
+vagina
+porno
+sex

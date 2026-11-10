@@ -20,6 +20,15 @@ public final class Texts {
     public static final String NEXT_LEVEL = "Nächstes Level  ▶";
     public static final String AGAIN = "↺  Nochmal";
 
+        public static final String FINISH = "Mission beenden  ▶";
+    public static final String GAME_TITLE = "Mars Rover Mission";
+    public static final String GAME_SUBTITLE =
+            "Steuere einen echten Rover über den Mars – mit echtem Java-Code. Bau dein Programm aus Blöcken!";
+    public static final String NAME_PROMPT = "Wie heißt du, Pilot:in?";
+    public static final String NAME_PLACEHOLDER = "Dein Name";
+    public static final String START_MISSION = "Mission starten  ▶";
+    public static final String DONE = "Fertig";
+
         private Texts() {
     }
 
@@ -77,6 +86,29 @@ public final class Texts {
 
     public static String blocksTarget(int used, int target) {
         return "Blöcke: " + used + "  (für ★★★ höchstens " + target + ")";
+    }
+
+    public static String progress(String name, int level, int levels) {
+        return "Pilot:in " + name + "  ·  Level " + level + " / " + levels;
+    }
+
+    public static String missionComplete(String name) {
+        return "Mission beendet, " + name + "!";
+    }
+
+    /** e.g. "★★☆" */
+    public static String stars(int n) {
+        return "★".repeat(n) + "☆".repeat(Math.max(0, 3 - n));
+    }
+
+    public static String totalStars(int stars, int max) {
+        return "Gesamt: " + stars + " / " + max + " ★";
+    }
+
+    /** e.g. "Zeit: 3:07" */
+    public static String time(long millis) {
+        long seconds = millis / 1000;
+        return "Zeit: " + seconds / 60 + ":" + String.format("%02d", seconds % 60);
     }
 
     public static String battery(int left, int total) {

@@ -19,14 +19,18 @@ import marsrover.program.Block.Repeat;
 import marsrover.program.Block.While;
 import marsrover.view.DevSnapshot;
 import marsrover.view.Fonts;
+import marsrover.view.Game;
 import marsrover.view.LevelScreen;
+import javafx.scene.layout.Pane;
+import marsrover.session.NameFilter;
 
 /**
  * Dev options (system properties):
  * {@code -Dkiosk=false} windowed instead of full screen,
- * {@code -Dlevel=N} start at level N (1-based),
+ * {@code -Dlevel=N} skip the start screen and start at level N (1-based),
  * {@code -Ddemo=true} preload the reference solution,
  * {@code -Dautorun=true} press Run right away,
+ * {@code -Dscreen=end} show the end screen with a made-up session,
  * {@code -Dsnapshot=file.png} see {@link DevSnapshot}.
  */
 public class App extends Application {
@@ -52,27 +56,33 @@ public class App extends Application {
         launch(args);
     }
 
-    private List<Level> levels;
-    private Scene scene;
-
     @Override
     public void start(Stage stage) {
         LevelLoader.Result loaded = LevelLoader.loadFolder(Path.of("levels"));
         loaded.errors().forEach(e -> System.err.println("Level " + e.file() + ": " + e.reason()));
-        levels = loaded.levels();
+        List<Level> levels = loaded.levels();
         if (levels.isEmpty()) {
             System.err.println("Keine Levels gefunden.");
             Platform.exit();
             return;
         }
-        scene = new Scene(new javafx.scene.layout.Pane(), WIDTH, HEIGHT);
+        Scene scene = new Scene(new Pane(), WIDTH, HEIGHT);
         scene.getStylesheets().addAll(
                 App.class.getResource("/marsrover/style.css").toExternalForm(),
                 Fonts.monoStylesheet());
 
-        LevelScreen screen = showLevel(Math.clamp(Integer.getInteger("level", 1) - 1, 0, levels.size() - 1));
-        if (Boolean.getBoolean("autorun")) {
-            screen.run();
+        Game game = new Game(scene, levels, NameFilter.fromFile(Path.of("data", "badwords.txt")),
+                System::currentTimeMillis, Boolean.getBoolean("demo") ? DEMO_PROGRAMS : Map.of());
+        Integer level = Integer.getInteger("level");
+        if ("end".equals(System.getProperty("screen"))) {
+            game.showDemoEnd();
+        } else if (level == null) {
+            game.showStart();
+        } else {
+            LevelScreen screen = game.startAt(Math.clamp(level - 1, 0, levels.size() - 1));
+            if (Boolean.getBoolean("autorun")) {
+                screen.run();
+            }
         }
         if (DevSnapshot.scheduleIfRequested(scene)) {
             return; // render off-screen at exactly 1920×1080
@@ -83,18 +93,5 @@ public class App extends Application {
         stage.setFullScreenExitHint("");
         stage.setFullScreen(!"false".equals(System.getProperty("kiosk")));
         stage.show();
-    }
-
-    // TODO(T9): replaced by the session flow (name entry, levels 1–4, end screen).
-    private LevelScreen showLevel(int index) {
-        Level level = levels.get(index);
-        List<Block> initial = Boolean.getBoolean("demo")
-                ? DEMO_PROGRAMS.getOrDefault(level.id(), List.of())
-                : List.of();
-        LevelScreen screen = new LevelScreen(level, initial,
-                stars -> { },
-                () -> showLevel((index + 1) % levels.size()));
-        scene.setRoot(screen);
-        return screen;
     }
 }
