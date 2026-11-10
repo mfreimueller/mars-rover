@@ -5,6 +5,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.util.Map;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -89,6 +95,39 @@ public final class LevelLoader {
             }
         }
         return new Result(List.copyOf(levels), List.copyOf(errors));
+    }
+
+    /**
+     * Loads {@code folder}; if it does not exist or holds no valid level, falls back to the
+     * levels bundled in the jar. The fallback is reported as an extra error line.
+     */
+    public static Result loadFolderOrBundled(Path folder) {
+        Result result = loadFolder(folder);
+        if (!result.levels().isEmpty()) {
+            return result;
+        }
+        List<LoadError> errors = new ArrayList<>(result.errors());
+        errors.add(new LoadError(folder.toString(), "keine gültigen Levels – nutze die eingebauten"));
+        try {
+            URL url = LevelLoader.class.getResource("/levels");
+            if (url == null) {
+                return new Result(List.of(), List.copyOf(errors));
+            }
+            URI uri = url.toURI();
+            if ("jar".equals(uri.getScheme())) {
+                try (FileSystem fs = FileSystems.newFileSystem(uri, Map.of())) {
+                    Result bundled = loadFolder(fs.getPath("/levels"));
+                    errors.addAll(bundled.errors());
+                    return new Result(bundled.levels(), List.copyOf(errors));
+                }
+            }
+            Result bundled = loadFolder(Path.of(uri));
+            errors.addAll(bundled.errors());
+            return new Result(bundled.levels(), List.copyOf(errors));
+        } catch (IOException | URISyntaxException | RuntimeException e) {
+            errors.add(new LoadError("(jar)", "eingebaute Levels nicht lesbar: " + e.getMessage()));
+            return new Result(List.of(), List.copyOf(errors));
+        }
     }
 
     /** Parses and validates one level. */

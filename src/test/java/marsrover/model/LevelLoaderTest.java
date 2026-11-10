@@ -144,6 +144,25 @@ class LevelLoaderTest {
     }
 
     @Test
+    void fallsBackToBundledLevels(@TempDir Path dir) {
+        // In tests the bundled levels come from target/classes/levels (copied by Maven).
+        LevelLoader.Result result = LevelLoader.loadFolderOrBundled(dir.resolve("nope"));
+
+        assertEquals(4, result.levels().size());
+        assertTrue(result.errors().stream().anyMatch(e -> e.reason().contains("eingebauten")));
+    }
+
+    @Test
+    void noFallbackWhenTheFolderHasLevels(@TempDir Path dir) throws IOException {
+        Files.writeString(dir.resolve("01.json"), VALID);
+
+        LevelLoader.Result result = LevelLoader.loadFolderOrBundled(dir);
+
+        assertEquals(1, result.levels().size());
+        assertEquals(List.of(), result.errors());
+    }
+
+    @Test
     void missingFolderIsAnErrorNotAnException(@TempDir Path dir) {
         LevelLoader.Result result = LevelLoader.loadFolder(dir.resolve("nope"));
 

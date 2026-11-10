@@ -1,10 +1,17 @@
 package marsrover.view;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.function.LongSupplier;
+import javafx.application.Platform;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.StackPane;
 import marsrover.model.Level;
+import marsrover.model.LevelLoader;
 import marsrover.program.Block;
 import marsrover.session.Leaderboard;
 import marsrover.session.NameFilter;
@@ -12,11 +19,15 @@ import marsrover.session.Session;
 
 /**
  * The session flow: start screen → levels in order → end screen → start screen.
- * Owns the scene root; screens only report back through callbacks.
+ * Owns the scene root (a fixed shell): screens are swapped inside it, and the admin
+ * panel (Ctrl+Shift+A) can sit on top of any screen. Screens report back through callbacks.
  */
 public final class Game {
 
-    private final Scene scene;
+    private final StackPane shell = new StackPane();
+    private final Path levelsFolder;
+    private final String adminPin;
+    private AdminOverlay admin;
     private final NameFilter nameFilter;
     private final Leaderboard leaderboard;
     private final LongSupplier clock;
@@ -26,20 +37,97 @@ public final class Game {
     private Session session;
     private LevelScreen levelScreen;
 
-    public Game(Scene scene, List<Level> levels, NameFilter nameFilter, Leaderboard leaderboard,
-                LongSupplier clock, Map<String, List<Block>> preload) {
-        this.scene = scene;
+    public Game(Scene scene, Path levelsFolder, List<Level> levels, NameFilter nameFilter,
+                Leaderboard leaderboard, String adminPin, LongSupplier clock, Map<String, List<Block>> preload) {
+        this.levelsFolder = levelsFolder;
+        this.adminPin = adminPin;
         this.leaderboard = leaderboard;
         this.levels = levels;
         this.nameFilter = nameFilter;
         this.clock = clock;
         this.preload = preload;
+        scene.setRoot(shell);
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            if (e.isControlDown() && e.isShiftDown() && e.getCode() == KeyCode.A) {
+                openAdmin();
+                e.consume();
+            }
+        });
     }
+
+    private void setScreen(Node screen) {
+        if (shell.getChildren().isEmpty()) {
+            shell.getChildren().add(screen);
+        } else {
+            shell.getChildren().set(0, screen);
+        }
+    }
+
+    // ---- admin ------------------------------------------------------------------------------
+
+    public void openAdmin() {
+        if (admin != null) {
+            return;
+        }
+        admin = new AdminOverlay(adminPin, new AdminOverlay.Actions() {
+            @Override
+            public LevelLoader.Result reloadLevels() {
+                return Game.this.reloadLevels();
+            }
+
+            @Override
+            public void clearLeaderboard() {
+                leaderboard.clear();
+                if (session == null) {
+                    showStart(); // refresh the visible board
+                }
+            }
+
+            @Override
+            public void exit() {
+                Platform.exit();
+                System.exit(0);
+            }
+
+            @Override
+            public void close() {
+                closeAdmin();
+            }
+        });
+        shell.getChildren().add(admin);
+    }
+
+    /** Dev only: the admin menu without PIN, for snapshots. */
+    public void openAdminUnlockedForDev() {
+        openAdmin();
+        admin.unlockForDev();
+    }
+
+    private void closeAdmin() {
+        shell.getChildren().remove(admin);
+        admin = null;
+    }
+
+    /**
+     * Re-reads the levels folder. With at least one valid level the new set is used and any
+     * running session ends (its result still counts); otherwise the old levels stay.
+     */
+    private LevelLoader.Result reloadLevels() {
+        LevelLoader.Result result = LevelLoader.loadFolder(levelsFolder);
+        if (!result.levels().isEmpty()) {
+            abortSessionKeepAdmin();
+            levels = result.levels();
+            showStart();
+        }
+        return result;
+    }
+
+    // ---- flow -------------------------------------------------------------------------------
 
     public void showStart() {
         session = null;
         levelScreen = null;
-        scene.setRoot(new StartScreen(nameFilter, new LeaderboardView(leaderboard, 0), this::startSession));
+        setScreen(new StartScreen(nameFilter, new LeaderboardView(leaderboard, 0), this::startSession));
     }
 
     public void startSession(String name) {
@@ -74,7 +162,7 @@ public final class Game {
         levelScreen = new LevelScreen(level, preload.getOrDefault(level.id(), List.of()), progress, last,
                 stars -> session.recordSolved(level.id(), stars, clock.getAsLong()),
                 this::nextLevel);
-        scene.setRoot(levelScreen);
+        setScreen(levelScreen);
     }
 
     private void nextLevel() {
@@ -93,7 +181,7 @@ public final class Game {
         int rank = store(result);
         session = null;
         levelScreen = null;
-        scene.setRoot(new EndScreen(finished, result, rank, levels,
+        setScreen(new EndScreen(finished, result, rank, levels,
                 new LeaderboardView(leaderboard, rank), this::showStart));
     }
 
@@ -102,10 +190,18 @@ public final class Game {
      * if at least one level was solved. Then back to the start screen.
      */
     public void abortSession() {
+        if (admin != null) {
+            closeAdmin(); // never leave the admin panel open on an unattended kiosk
+        }
+        abortSessionKeepAdmin();
+        showStart();
+    }
+
+    private void abortSessionKeepAdmin() {
         if (session != null) {
             store(session.result());
+            session = null;
         }
-        showStart();
     }
 
     /** Returns the rank, or 0 if nothing was solved and nothing was stored. */

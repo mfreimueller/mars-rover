@@ -442,3 +442,23 @@
     -fx-font-weight: bold;
     -fx-text-fill: #9be29b;
 }
+
+/* ---- admin ---- */
+
+.admin-card {
+    -fx-border-color: #ff8a80;
+}
+
+.admin-status {
+    -fx-font-size: 22px;
+    -fx-text-fill: #f0cdb4;
+    -fx-max-width: 700px;
+}
+
+.button.danger {
+    -fx-background-color: #b3261e;
+}
+
+.button.neutral {
+    -fx-background-color: #6a4a3e;
+}

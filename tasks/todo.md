@@ -68,7 +68,7 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
   - Verify: manual – Esc, Alt+F4 and Cmd+Q don't exit; idle 60 s resets.
   - Files: `App`, `session/Config`, `view/*` key handling
 
-- [ ] **T12: Admin dialog** (S) – depends on T10, T11
+- [x] **T12: Admin dialog** (S) – depends on T10, T11
   - Acceptance: Ctrl+Shift+A → PIN (from `data/config.properties`) → reload levels (lists invalid files), clear leaderboard, exit, cancel.
   - Verify: manual – drop in a new JSON and reload; drop in broken JSON and see the error; wrong PIN does nothing.
   - Files: `view/AdminDialog`, `session/Config`

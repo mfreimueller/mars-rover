@@ -34,6 +34,7 @@ import marsrover.session.NameFilter;
  * {@code -Ddemo=true} preload the reference solution,
  * {@code -Dautorun=true} press Run right away,
  * {@code -Dscreen=end} show the end screen with a made-up session,
+ * {@code -Dscreen=admin} open the admin PIN prompt right away,
  * {@code -Dconfig=file.properties} use another config file (default data/config.properties),
  * {@code -Dleaderboard=file.json} use another leaderboard file (default data/leaderboard.json),
  * {@code -Dsnapshot=file.png} see {@link DevSnapshot}.
@@ -63,7 +64,8 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        LevelLoader.Result loaded = LevelLoader.loadFolder(Path.of("levels"));
+        Path levelsFolder = Path.of("levels");
+        LevelLoader.Result loaded = LevelLoader.loadFolderOrBundled(levelsFolder);
         loaded.errors().forEach(e -> System.err.println("Level " + e.file() + ": " + e.reason()));
         List<Level> levels = loaded.levels();
         if (levels.isEmpty()) {
@@ -77,11 +79,17 @@ public class App extends Application {
                 Fonts.monoStylesheet());
 
         Config config = Config.load(Path.of(System.getProperty("config", "data/config.properties")));
-        Game game = new Game(scene, levels, NameFilter.fromFile(Path.of("data", "badwords.txt")),
+        Game game = new Game(scene, levelsFolder, levels, NameFilter.fromFile(Path.of("data", "badwords.txt")),
                 Leaderboard.load(Path.of(System.getProperty("leaderboard", "data/leaderboard.json"))),
-                System::currentTimeMillis, Boolean.getBoolean("demo") ? DEMO_PROGRAMS : Map.of());
+                config.adminPin(), System::currentTimeMillis, Boolean.getBoolean("demo") ? DEMO_PROGRAMS : Map.of());
         Integer level = Integer.getInteger("level");
-        if ("end".equals(System.getProperty("screen"))) {
+        if ("admin".equals(System.getProperty("screen"))) {
+            game.showStart();
+            game.openAdmin();
+        } else if ("admin-menu".equals(System.getProperty("screen"))) {
+            game.showStart();
+            game.openAdminUnlockedForDev();
+        } else if ("end".equals(System.getProperty("screen"))) {
             game.showDemoEnd();
         } else if (level == null) {
             game.showStart();
