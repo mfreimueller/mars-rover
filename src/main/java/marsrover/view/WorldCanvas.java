@@ -72,6 +72,13 @@ public final class WorldCanvas extends Region {
         }
     }
 
+    /** A small picture of one tile, for the legend. */
+    static Canvas icon(Tile tile, double size) {
+        Canvas c = new Canvas(size, size);
+        drawTile(c.getGraphicsContext2D(), tile, 0, 0, size, true);
+        return c;
+    }
+
     private static void drawTile(GraphicsContext g, Tile tile, double x, double y, double s, boolean even) {
         g.setFill(tile == Tile.DUST ? DUST : even ? GROUND : GROUND_DARK);
         g.fillRect(x, y, s, s);

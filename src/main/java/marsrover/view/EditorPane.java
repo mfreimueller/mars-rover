@@ -2,6 +2,8 @@ package marsrover.view;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalInt;
+import javafx.animation.PauseTransition;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -22,6 +24,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import marsrover.model.Level;
 import marsrover.model.PaletteEntry;
 import marsrover.program.Block;
@@ -50,13 +53,18 @@ public final class EditorPane {
     private final VBox programPanel;
     private final List<HBox> rowNodes = new ArrayList<>();
 
+    private final OptionalInt maxBlocks;
+    private final Label counter = new Label();
+
     /** What is being dragged: a {@link PaletteEntry} or an {@link EditorModel.Node}. */
     private Object dragged;
+    private EditorModel.Node selected;
     private boolean locked;
 
     public EditorPane(Level level, List<Block> initial, Runnable onChange) {
         this.model = new EditorModel(initial);
         this.onChange = onChange;
+        this.maxBlocks = level.maxBlocks();
         this.palettePanel = buildPalette(level.palette());
         this.programPanel = buildProgramPanel();
         render();
@@ -72,6 +80,30 @@ public final class EditorPane {
 
     public Program program() {
         return model.program();
+    }
+
+    /** Deletes the selected block (Del key). */
+    public void deleteSelected() {
+        if (selected != null && !locked) {
+            model.remove(selected);
+            changed();
+        }
+    }
+
+    private boolean isFull() {
+        return maxBlocks.isPresent() && model.blockCount() >= maxBlocks.getAsInt();
+    }
+
+    /** Briefly flashes the block counter red, e.g. when the block limit refuses a drop. */
+    private void flashCounter() {
+        counter.getStyleClass().add("limit");
+        PauseTransition pause = new PauseTransition(Duration.millis(900));
+        pause.setOnFinished(e -> counter.getStyleClass().remove("limit"));
+        pause.play();
+    }
+
+    private void updateCounter() {
+        counter.setText(Texts.blocks(model.blockCount(), maxBlocks));
     }
 
     /** While locked (program running), nothing can be dragged or clicked. */
@@ -115,8 +147,12 @@ public final class EditorPane {
             });
             chip.setOnMouseClicked(e -> {
                 if (!locked && e.getButton() == MouseButton.PRIMARY && e.isStillSincePress()) {
-                    model.append(entry);
-                    changed();
+                    if (isFull()) {
+                        flashCounter();
+                    } else {
+                        selected = model.append(entry);
+                        changed();
+                    }
                 }
             });
             blocks.getChildren().add(chip);
@@ -187,8 +223,13 @@ public final class EditorPane {
     // ---- program ----------------------------------------------------------------------------
 
     private VBox buildProgramPanel() {
-        Label heading = new Label(Texts.PROGRAM);
-        heading.getStyleClass().add("panel-heading");
+        Label title = new Label(Texts.PROGRAM);
+        title.getStyleClass().add("panel-heading");
+        counter.getStyleClass().add("block-counter");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox heading = new HBox(title, spacer, counter);
+        heading.setAlignment(Pos.CENTER_LEFT);
 
         indicator.getStyleClass().add("drop-indicator");
         indicator.setManaged(false);
@@ -210,6 +251,11 @@ public final class EditorPane {
         scroll.getStyleClass().add("code-scroll");
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
+        dropArea.setOnDragEntered(e -> {
+            if (dragged instanceof PaletteEntry && isFull()) {
+                flashCounter();
+            }
+        });
         dropArea.setOnDragOver(this::onDragOverProgram);
         dropArea.setOnDragExited(e -> indicator.setVisible(false));
         dropArea.setOnDragDropped(this::onDropOnProgram);
@@ -224,6 +270,10 @@ public final class EditorPane {
     private void render() {
         rowsBox.getChildren().clear();
         rowNodes.clear();
+        updateCounter();
+        if (model.rows().stream().noneMatch(r -> r.node() == selected)) {
+            selected = null; // it was deleted
+        }
         if (model.rows().isEmpty()) {
             rowsBox.getChildren().add(placeholder);
             return;
@@ -234,9 +284,12 @@ public final class EditorPane {
             number.setMinWidth(44);
             number.setAlignment(Pos.CENTER_RIGHT);
 
-            Label chip = chip(row.text(), kindClass(row.node().kind()));
+            Region chip = rowChip(row);
             if (row.kind() == RowKind.CLOSE || row.kind() == RowKind.ELSE) {
                 chip.getStyleClass().add("block-brace");
+            }
+            if (row.node() == selected) {
+                chip.getStyleClass().add("selected");
             }
             HBox.setMargin(chip, new Insets(0, 0, 0, row.indent() * INDENT));
             chip.setOnDragDetected(e -> {
@@ -244,6 +297,18 @@ public final class EditorPane {
                     startDrag(chip, row.node());
                 }
                 e.consume();
+            });
+            chip.setOnMouseClicked(e -> {
+                if (locked || !e.isStillSincePress()) {
+                    return;
+                }
+                if (e.getButton() == MouseButton.SECONDARY) {
+                    model.remove(row.node());
+                    changed();
+                } else if (e.getButton() == MouseButton.PRIMARY) {
+                    selected = row.node();
+                    render();
+                }
             });
 
             HBox line = new HBox(14, number, chip);
@@ -254,7 +319,55 @@ public final class EditorPane {
         }
     }
 
-    private void startDrag(Label source, Object payload) {
+    /**
+     * The block shown in a row. A for-loop header splits off its count, which is edited in place:
+     * left click +1, right click −1, scroll wheel ±1.
+     */
+    private Region rowChip(Row row) {
+        String kindClass = kindClass(row.node().kind());
+        int count = row.node().count();
+        String marker = " < " + count + ";";
+        int at = row.text().indexOf(marker);
+        if (row.node().kind() != EditorModel.Kind.REPEAT || row.kind() != RowKind.HEADER || at < 0) {
+            return chip(row.text(), kindClass);
+        }
+        Label before = new Label(row.text().substring(0, at + 3));
+        Label number = new Label(String.valueOf(count));
+        Label after = new Label(row.text().substring(at + 3 + String.valueOf(count).length()));
+        before.getStyleClass().add("code-text");
+        after.getStyleClass().add("code-text");
+        number.getStyleClass().addAll("code-text", "count");
+
+        number.setOnMouseClicked(e -> {
+            if (!locked) {
+                int delta = e.getButton() == MouseButton.SECONDARY ? -1 : e.getButton() == MouseButton.PRIMARY ? 1 : 0;
+                changeCount(row.node(), delta);
+            }
+            e.consume(); // a right click on the number must not delete the loop
+        });
+        number.setOnScroll(e -> {
+            if (!locked && e.getDeltaY() != 0) {
+                changeCount(row.node(), e.getDeltaY() > 0 ? 1 : -1);
+            }
+            e.consume();
+        });
+
+        HBox chip = new HBox(before, number, after);
+        chip.setAlignment(Pos.CENTER_LEFT);
+        chip.getStyleClass().addAll("block", kindClass);
+        chip.setMinHeight(48);
+        chip.setMaxWidth(Region.USE_PREF_SIZE);
+        return chip;
+    }
+
+    private void changeCount(EditorModel.Node node, int delta) {
+        if (delta != 0) {
+            model.setCount(node, node.count() + delta);
+            changed();
+        }
+    }
+
+    private void startDrag(Region source, Object payload) {
         dragged = payload;
         Dragboard db = source.startDragAndDrop(TransferMode.COPY_OR_MOVE);
         ClipboardContent content = new ClipboardContent();
@@ -266,6 +379,10 @@ public final class EditorPane {
     }
 
     private void onDragOverProgram(DragEvent e) {
+        if (dragged instanceof PaletteEntry && isFull()) {
+            e.consume(); // not accepted: the drop is refused
+            return;
+        }
         if (dragged != null && !locked) {
             e.acceptTransferModes(TransferMode.COPY_OR_MOVE);
             int gap = gapAt(e.getSceneX(), e.getSceneY());
@@ -281,8 +398,11 @@ public final class EditorPane {
         }
         Slot slot = model.gaps().get(gapAt(e.getSceneX(), e.getSceneY()));
         switch (dragged) {
-            case PaletteEntry entry -> model.insert(entry, slot);
-            case EditorModel.Node node -> model.move(node, slot);
+            case PaletteEntry entry -> selected = model.insert(entry, slot);
+            case EditorModel.Node node -> {
+                model.move(node, slot);
+                selected = node;
+            }
             default -> { }
         }
         dragged = null;

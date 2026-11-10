@@ -52,27 +52,25 @@ public class App extends Application {
         launch(args);
     }
 
+    private List<Level> levels;
+    private Scene scene;
+
     @Override
     public void start(Stage stage) {
         LevelLoader.Result loaded = LevelLoader.loadFolder(Path.of("levels"));
         loaded.errors().forEach(e -> System.err.println("Level " + e.file() + ": " + e.reason()));
-        if (loaded.levels().isEmpty()) {
+        levels = loaded.levels();
+        if (levels.isEmpty()) {
             System.err.println("Keine Levels gefunden.");
             Platform.exit();
             return;
         }
-        int index = Math.clamp(Integer.getInteger("level", 2) - 1, 0, loaded.levels().size() - 1);
-        Level level = loaded.levels().get(index);
-        List<Block> initial = Boolean.getBoolean("demo")
-                ? DEMO_PROGRAMS.getOrDefault(level.id(), List.of())
-                : List.of();
-
-        LevelScreen screen = new LevelScreen(level, initial);
-        Scene scene = new Scene(screen, WIDTH, HEIGHT);
+        scene = new Scene(new javafx.scene.layout.Pane(), WIDTH, HEIGHT);
         scene.getStylesheets().addAll(
                 App.class.getResource("/marsrover/style.css").toExternalForm(),
                 Fonts.monoStylesheet());
 
+        LevelScreen screen = showLevel(Math.clamp(Integer.getInteger("level", 1) - 1, 0, levels.size() - 1));
         if (Boolean.getBoolean("autorun")) {
             screen.run();
         }
@@ -85,5 +83,18 @@ public class App extends Application {
         stage.setFullScreenExitHint("");
         stage.setFullScreen(!"false".equals(System.getProperty("kiosk")));
         stage.show();
+    }
+
+    // TODO(T9): replaced by the session flow (name entry, levels 1–4, end screen).
+    private LevelScreen showLevel(int index) {
+        Level level = levels.get(index);
+        List<Block> initial = Boolean.getBoolean("demo")
+                ? DEMO_PROGRAMS.getOrDefault(level.id(), List.of())
+                : List.of();
+        LevelScreen screen = new LevelScreen(level, initial,
+                stars -> { },
+                () -> showLevel((index + 1) % levels.size()));
+        scene.setRoot(screen);
+        return screen;
     }
 }

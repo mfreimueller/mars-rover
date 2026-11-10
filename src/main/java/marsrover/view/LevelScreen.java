@@ -1,6 +1,7 @@
 package marsrover.view;
 
 import java.util.List;
+import java.util.function.IntConsumer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
@@ -10,15 +11,19 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Slider;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import marsrover.model.Level;
+import marsrover.model.Stars;
+import marsrover.model.Tile;
+import marsrover.model.World;
 import marsrover.program.Block;
 import marsrover.program.Interpreter;
 import marsrover.program.Program;
@@ -28,37 +33,54 @@ import marsrover.program.StepResult.Status;
 /**
  * One level: palette left, map in the middle, program right, controls at the bottom.
  * Run is a {@link Timeline} that calls {@link Interpreter#step()} at the chosen speed.
+ * On success a {@link ResultOverlay} shows the stars.
  */
-public final class LevelScreen extends BorderPane {
+public final class LevelScreen extends StackPane {
 
     private static final double[] SPEED_MS = {600, 300, 100};
+    private static final Tile[] LEGEND_ORDER = {Tile.SAMPLE, Tile.BASE, Tile.CRATER, Tile.ROCK, Tile.DUST};
 
     private final Level level;
+    private final int totalSamples;
     private final EditorPane editor;
+    private final IntConsumer onSolved;
+    private final Runnable onNext;
 
     private final WorldCanvas worldCanvas = new WorldCanvas();
     private final ProgressBar batteryBar = new ProgressBar(1);
     private final Label batteryLabel = new Label();
+    private final Label samplesLabel = new Label();
     private final Label message = new Label();
     private final Label hint = new Label();
+    private final VBox banner = new VBox(4, message, hint);
     private final Slider speed = new Slider(0, 2, 1);
 
     private Program program;
     private Interpreter interpreter;
     private Timeline timeline;
+    private ResultOverlay overlay;
 
-    public LevelScreen(Level level, List<Block> initialProgram) {
+    /**
+     * @param onSolved called with the stars (1–3) each time the level is solved
+     * @param onNext   called when the visitor presses "Nächstes Level"
+     */
+    public LevelScreen(Level level, List<Block> initialProgram, IntConsumer onSolved, Runnable onNext) {
         this.level = level;
+        this.totalSamples = level.createWorld().count(Tile.SAMPLE);
+        this.onSolved = onSolved;
+        this.onNext = onNext;
         this.editor = new EditorPane(level, initialProgram, this::reset);
         getStyleClass().add("level-screen");
 
-        setTop(header());
-        setLeft(editor.palettePanel());
+        BorderPane layout = new BorderPane();
+        layout.setTop(header());
+        layout.setLeft(editor.palettePanel());
         BorderPane.setMargin(editor.palettePanel(), new Insets(12, 0, 12, 32));
-        setCenter(worldPane());
-        setRight(editor.programPanel());
+        layout.setCenter(worldPane());
+        layout.setRight(editor.programPanel());
         BorderPane.setMargin(editor.programPanel(), new Insets(12, 32, 12, 0));
-        setBottom(controls());
+        layout.setBottom(controls());
+        getChildren().add(layout);
 
         addEventFilter(KeyEvent.KEY_PRESSED, this::onKey);
         reset();
@@ -72,14 +94,48 @@ public final class LevelScreen extends BorderPane {
         Label intro = new Label(level.intro());
         intro.getStyleClass().add("intro");
         intro.setWrapText(true);
-        VBox box = new VBox(6, title, intro);
-        box.setPadding(new Insets(24, 32, 12, 32));
+        Label goal = new Label(Texts.goal(totalSamples));
+        goal.getStyleClass().add("goal");
+        VBox box = new VBox(6, title, intro, goal);
+        box.setPadding(new Insets(20, 32, 8, 32));
         return box;
     }
 
     private Node worldPane() {
-        BorderPane.setMargin(worldCanvas, new Insets(12, 24, 12, 24));
-        return worldCanvas;
+        banner.getStyleClass().add("banner");
+        banner.setAlignment(Pos.CENTER);
+        banner.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        banner.setMouseTransparent(true);
+        message.getStyleClass().add("message");
+        message.setWrapText(true);
+        hint.getStyleClass().add("java-hint");
+
+        StackPane map = new StackPane(worldCanvas, banner);
+        StackPane.setAlignment(banner, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(banner, new Insets(0, 0, 8, 0));
+        VBox.setVgrow(map, Priority.ALWAYS);
+
+        VBox pane = new VBox(12, map, legend());
+        pane.setAlignment(Pos.CENTER);
+        BorderPane.setMargin(pane, new Insets(12, 24, 12, 24));
+        return pane;
+    }
+
+    /** Icons for the special tiles of this level. */
+    private Node legend() {
+        World world = level.createWorld();
+        FlowPane legend = new FlowPane(22, 8);
+        legend.setAlignment(Pos.CENTER);
+        legend.getStyleClass().add("legend");
+        for (Tile tile : LEGEND_ORDER) {
+            if (world.count(tile) > 0) {
+                Label label = new Label(Texts.legend(tile), WorldCanvas.icon(tile, 34));
+                label.getStyleClass().add("legend-item");
+                label.setMinWidth(Region.USE_PREF_SIZE);
+                legend.getChildren().add(label);
+            }
+        }
+        return legend;
     }
 
     private Node controls() {
@@ -99,9 +155,7 @@ public final class LevelScreen extends BorderPane {
         });
         Label speedLabel = new Label(Texts.SPEED);
         speedLabel.getStyleClass().add("control-label");
-        Label slow = new Label("🐢");
-        Label fast = new Label("🐇");
-        HBox speedBox = new HBox(10, speedLabel, slow, speed, fast);
+        HBox speedBox = new HBox(10, speedLabel, new Label("🐢"), speed, new Label("🐇"));
         speedBox.setAlignment(Pos.CENTER_LEFT);
 
         batteryBar.setPrefWidth(220);
@@ -110,15 +164,12 @@ public final class LevelScreen extends BorderPane {
         VBox batteryBox = new VBox(4, batteryLabel, batteryBar);
         batteryBox.setAlignment(Pos.CENTER_LEFT);
 
-        message.getStyleClass().add("message");
-        hint.getStyleClass().add("java-hint");
-        VBox messageBox = new VBox(2, message, hint);
-        messageBox.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(messageBox, Priority.ALWAYS);
+        samplesLabel.getStyleClass().add("samples");
+        samplesLabel.setVisible(totalSamples > 0);
 
         Region gap = new Region();
         gap.setMinWidth(24);
-        HBox bar = new HBox(16, run, step, reset, gap, speedBox, batteryBox, messageBox);
+        HBox bar = new HBox(24, run, step, reset, gap, speedBox, batteryBox, samplesLabel);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.setPadding(new Insets(12, 32, 28, 32));
         return bar;
@@ -135,10 +186,14 @@ public final class LevelScreen extends BorderPane {
     // ---- execution ------------------------------------------------------------------------
 
     private void onKey(KeyEvent e) {
+        if (overlay != null) {
+            return; // the overlay's buttons handle Enter themselves
+        }
         switch (e.getCode()) {
             case F5, ENTER -> run();
             case F6 -> step();
             case R -> reset();
+            case DELETE, BACK_SPACE -> editor.deleteSelected();
             default -> {
                 return;
             }
@@ -166,6 +221,7 @@ public final class LevelScreen extends BorderPane {
     /** Back to the start position; the program is kept. */
     public void reset() {
         stopTimeline();
+        closeOverlay();
         program = editor.program();
         interpreter = new Interpreter(level, program);
         show(interpreter.current());
@@ -198,29 +254,41 @@ public final class LevelScreen extends BorderPane {
         worldCanvas.show(r.world(), r.rover(), r.failure() == StepResult.Failure.CRATER);
         batteryBar.setProgress(level.battery() == 0 ? 0 : (double) r.battery() / level.battery());
         batteryLabel.setText(Texts.battery(r.battery(), level.battery()));
+        samplesLabel.setText(Texts.samples(totalSamples - r.samplesLeft(), totalSamples));
 
-        message.getStyleClass().removeAll("error", "success");
+        banner.getStyleClass().removeAll("error", "success");
+        banner.setVisible(false);
         hint.setText("");
         switch (r.status()) {
-            case READY -> {
-                message.setText("");
-                editor.highlight(0);
-            }
-            case RUNNING -> {
-                message.setText("");
-                editor.highlight(r.line());
-            }
+            case READY -> editor.highlight(0);
+            case RUNNING -> editor.highlight(r.line());
             case SUCCESS -> {
-                message.setText(Texts.SUCCESS);
-                message.getStyleClass().add("success");
                 editor.highlight(0);
+                solved(r);
             }
             case FAILED -> {
                 message.setText(Texts.failure(r.failure(), r.samplesLeft()));
-                message.getStyleClass().add("error");
                 hint.setText(Texts.javaHint(r.line(), program.lineText(r.line())));
+                hint.setManaged(!hint.getText().isEmpty());
+                banner.getStyleClass().add("error");
+                banner.setVisible(true);
                 editor.markFailed(r.line());
             }
+        }
+    }
+
+    private void solved(StepResult r) {
+        int blocks = program.blockCount();
+        int stars = Stars.rate(true, r.batteryUsed(), blocks, level.stars());
+        onSolved.accept(stars);
+        overlay = new ResultOverlay(stars, r.batteryUsed(), blocks, level.stars(), this::reset, onNext);
+        getChildren().add(overlay);
+    }
+
+    private void closeOverlay() {
+        if (overlay != null) {
+            getChildren().remove(overlay);
+            overlay = null;
         }
     }
 

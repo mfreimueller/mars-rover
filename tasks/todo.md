@@ -38,15 +38,16 @@ Verify each task with `mvn -q test` unless noted. Commit after each green task.
   - Verify: `EditorModelTest` (insert/move/nesting → expected AST + lines); manual drag test.
   - Files: `view/EditorPane`, `program/EditorModel` (pure), `EditorModelTest`
 
-- [ ] **T7: Editor – delete, numbers, maxBlocks** (S) – depends on T6
+- [x] **T7: Editor – delete, numbers, maxBlocks** (S) – depends on T6
   - Acceptance: right-click or `Del` on a selected block deletes it (with its body); `for` count 1–20 changes on left click, right click and scroll; block counter shown; drop refused at `maxBlocks` with the counter flashing; editor locked while running.
   - Verify: `EditorModelTest` additions; manual check.
   - Files: `view/EditorPane`, `program/EditorModel`
 
-- [ ] **T8: Feedback + stars** (S) – depends on T7
+- [x] **T8: Feedback + stars** (S) – depends on T7
   - Acceptance: error banner with friendly text + `Zeile N: …` hint; success overlay with stars and "Nächstes Level".
   - Verify: manual – trigger crater, rock, battery, endless loop and incomplete mission; solve with 1, 2 and 3 stars.
   - Files: `view/LevelScreen`, `view/ResultOverlay`
+  - Added after the first playtest: a goal line under the intro ("Ziel: …"), a tile legend under the map and a sample counter ("Proben: 0 / 1"). Level 3 has no sample, and probeNehmen there is only a distractor, which confused the tester.
 
 ### ✅ Checkpoint B – levels 1–4 playable by mouse; hallway test with a newcomer
 
