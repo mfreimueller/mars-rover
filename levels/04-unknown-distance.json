@@ -15,5 +15,6 @@
   "battery": 20,
   "palette": ["vor", "linksUm", "rechtsUm", "probeNehmen", "while:vornFrei", "if:vornKrater"],
   "maxBlocks": 8,
-  "stars": { "battery": 13, "blocks": 6 }
+  "stars": { "battery": 13, "blocks": 6 },
+  "solution": ["while:vornFrei", "vor", "end", "probeNehmen", "rechtsUm", "while:vornFrei", "vor", "end"]
 }

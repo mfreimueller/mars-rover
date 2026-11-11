@@ -12,5 +12,6 @@
   "rover": { "x": 0, "y": 2, "dir": "E" },
   "battery": 10,
   "palette": ["vor", "linksUm", "probeNehmen"],
-  "stars": { "battery": 6, "blocks": 6 }
+  "stars": { "battery": 6, "blocks": 6 },
+  "solution": ["vor", "vor", "probeNehmen", "linksUm", "vor", "vor"]
 }

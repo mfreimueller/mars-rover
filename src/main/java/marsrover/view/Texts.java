@@ -16,6 +16,15 @@ public final class Texts {
     public static final String PALETTE = "Befehle – klicken oder ins Programm ziehen";
     public static final String DROP_HERE = "Zieh Befehle hierher";
     public static final String SUCCESS = "Mission geschafft!";
+    public static final String SOLUTION = "💡  Lösung";
+    public static final String SOLUTION_QUESTION = "Lösung anzeigen?";
+    public static final String SOLUTION_WARNING =
+            "Dann gibt es für dieses Level keine Sterne. Du kannst dir die Lösung anschauen und laufen lassen.";
+    public static final String SOLUTION_SHOW = "Lösung zeigen";
+    public static final String SOLUTION_CANCEL = "Weiter probieren";
+    public static final String SUCCESS_WITH_SOLUTION = "Geschafft – mit Lösung";
+    public static final String NO_STARS_WITH_SOLUTION =
+            "Mit der Lösung gibt es keine Sterne. Schau dir an, wie sie funktioniert – im nächsten Level schaffst du es selbst!";
 
     public static final String NEXT_LEVEL = "Nächstes Level  ▶";
     public static final String AGAIN = "↺  Nochmal";

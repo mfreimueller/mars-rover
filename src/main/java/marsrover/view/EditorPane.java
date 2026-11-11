@@ -80,6 +80,13 @@ public final class EditorPane {
         return model.program();
     }
 
+    /** Replaces the whole program, e.g. with the level's solution. */
+    public void showProgram(List<Block> blocks) {
+        model.replaceAll(blocks);
+        selected = null;
+        changed();
+    }
+
     /** Deletes the selected block (Del key). */
     public void deleteSelected() {
         if (selected != null && !locked) {

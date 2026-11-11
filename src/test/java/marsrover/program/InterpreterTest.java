@@ -28,7 +28,7 @@ class InterpreterTest {
 
     static Level level(int battery, int x, int y, Direction dir, String... rows) {
         return new Level("t", "Test", "", List.of(rows), new Rover(x, y, dir), battery,
-                List.of(), OptionalInt.empty(), new Level.StarThresholds(1, 1));
+                List.of(), OptionalInt.empty(), new Level.StarThresholds(1, 1), List.of());
     }
 
     static Block vor() {

@@ -3,20 +3,14 @@ package marsrover;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import marsrover.model.Action;
 import marsrover.model.Level;
 import marsrover.model.LevelLoader;
-import marsrover.model.Sensor;
 import marsrover.program.Block;
-import marsrover.program.Block.Command;
-import marsrover.program.Block.Condition;
-import marsrover.program.Block.If;
-import marsrover.program.Block.Repeat;
-import marsrover.program.Block.While;
 import marsrover.view.DevSnapshot;
 import marsrover.view.Fonts;
 import marsrover.view.Game;
@@ -31,8 +25,9 @@ import marsrover.session.NameFilter;
  * Dev options (system properties):
  * {@code -Dkiosk=false} windowed instead of full screen,
  * {@code -Dlevel=N} skip the start screen and start at level N (1-based),
- * {@code -Ddemo=true} preload the reference solution,
+ * {@code -Ddemo=true} preload each level's solution,
  * {@code -Dautorun=true} press Run right away,
+ * {@code -Dsolution=ask|show} press "Lösung" (and confirm, with {@code show}) right away,
  * {@code -Dscreen=end} show the end screen with a made-up session ({@code -Dname=...} sets its name),
  * {@code -Dscreen=admin} open the admin PIN prompt right away,
  * {@code -Dconfig=file.properties} use another config file (default data/config.properties),
@@ -44,20 +39,6 @@ public class App extends Application {
 
     public static final double WIDTH = 1920;
     public static final double HEIGHT = 1080;
-
-    /** Reference solutions, only preloaded with {@code -Ddemo=true} (dev snapshots). */
-    private static final Block VOR = new Command(Action.VOR);
-    private static final Map<String, List<Block>> DEMO_PROGRAMS = Map.of(
-            "01-landing", List.of(VOR, VOR, new Command(Action.PROBE_NEHMEN), new Command(Action.LINKS_UM), VOR, VOR),
-            "02-long-road", List.of(new Repeat(9, List.of(VOR))),
-            "03-crater-field", List.of(new Repeat(6, List.of(
-                    new If(new Condition(Sensor.VORN_KRATER, false), List.of(
-                            new Command(Action.LINKS_UM), VOR, new Command(Action.RECHTS_UM)), false, List.of()),
-                    VOR))),
-            "04-unknown-distance", List.of(
-                    new While(new Condition(Sensor.VORN_FREI, false), List.of(VOR)),
-                    new Command(Action.PROBE_NEHMEN), new Command(Action.RECHTS_UM),
-                    new While(new Condition(Sensor.VORN_FREI, false), List.of(VOR))));
 
     public static void main(String[] args) {
         launch(args);
@@ -83,7 +64,7 @@ public class App extends Application {
         Config config = Config.load(Path.of(System.getProperty("config", "data/config.properties")));
         Game game = new Game(scene, levelsFolder, levels, NameFilter.fromFile(Path.of("data", "badwords.txt")),
                 Leaderboard.load(Path.of(System.getProperty("leaderboard", "data/leaderboard.json"))),
-                config.adminPin(), System::currentTimeMillis, Boolean.getBoolean("demo") ? DEMO_PROGRAMS : Map.of());
+                config.adminPin(), System::currentTimeMillis, Boolean.getBoolean("demo") ? solutions(levels) : Map.of());
         Integer level = Integer.getInteger("level");
         if ("admin".equals(System.getProperty("screen"))) {
             game.showStart();
@@ -97,6 +78,11 @@ public class App extends Application {
             game.showStart();
         } else {
             LevelScreen screen = game.startAt(Math.clamp(level - 1, 0, levels.size() - 1));
+            switch (System.getProperty("solution", "")) {
+                case "ask" -> screen.askForSolution();
+                case "show" -> screen.showSolution();
+                default -> { }
+            }
             if (Boolean.getBoolean("autorun")) {
                 screen.run();
             }
@@ -116,5 +102,10 @@ public class App extends Application {
             Kiosk.lock(stage);
         }
         stage.show();
+    }
+
+    /** Dev only ({@code -Ddemo=true}): every level starts with its solution preloaded. */
+    private static Map<String, List<Block>> solutions(List<Level> levels) {
+        return levels.stream().collect(Collectors.toMap(Level::id, l -> Block.fromSolution(l.solution())));
     }
 }

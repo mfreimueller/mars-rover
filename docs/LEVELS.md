@@ -52,6 +52,7 @@ Das Spiel spielt **alle** Levels im Ordner, sortiert nach Dateinamen (`01-…`, 
 | `maxBlocks` | nein | Höchstzahl Blöcke im Programm |
 | `stars.battery` | ja | ★★ wenn höchstens so viel Batterie verbraucht |
 | `stars.blocks` | ja | ★★★ wenn zusätzlich höchstens so viele Blöcke |
+| `solution` | nein | Musterlösung für den Knopf „Lösung“ (siehe unten). Ohne `solution` gibt es den Knopf nicht. |
 
 Tippfehler in Feldnamen (z. B. `maxblocks`) werden als Fehler gemeldet.
 
@@ -83,6 +84,31 @@ Der Kartenrand zählt wie ein Fels.
 Sensoren: `vornFrei` (kein Fels, kein Krater, nicht der Rand), `vornKrater`, `probeDa`, `amZiel`.
 
 **Ablenkungs-Blöcke:** Einfach Blöcke in die Palette schreiben, die man nicht braucht.
+
+## Musterlösung (`solution`)
+
+Dieselben Einträge wie bei `palette`, Zeile für Zeile. `"end"` schließt eine Schleife oder ein `if`,
+bei `ifelse` trennt `"else"` die beiden Teile:
+
+```json
+"solution": ["for:6", "if:vornKrater", "linksUm", "vor", "rechtsUm", "end", "vor", "end"]
+```
+
+ergibt
+
+```java
+for (int i = 0; i < 6; i++) {
+    if (vornKrater()) {
+        linksUm();
+        vor();
+        rechtsUm();
+    }
+    vor();
+}
+```
+
+Wer sich die Lösung im Spiel anzeigen lässt, bekommt für dieses Level **keine Sterne**.
+Am besten die 3-Sterne-Lösung eintragen – die Besucher sollen ja etwas daraus lernen.
 
 ## Tipps für gute Levels
 

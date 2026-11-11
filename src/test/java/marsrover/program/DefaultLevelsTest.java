@@ -1,8 +1,6 @@
 package marsrover.program;
 
 import static marsrover.program.InterpreterTest.links;
-import static marsrover.program.InterpreterTest.loop;
-import static marsrover.program.InterpreterTest.probe;
 import static marsrover.program.InterpreterTest.rechts;
 import static marsrover.program.InterpreterTest.repeat;
 import static marsrover.program.InterpreterTest.vor;
@@ -19,7 +17,6 @@ import marsrover.model.PaletteEntry;
 import marsrover.model.Sensor;
 import marsrover.model.Stars;
 import marsrover.program.Block.Command;
-import marsrover.program.Block.Condition;
 import marsrover.program.Block.If;
 import marsrover.program.Block.Repeat;
 import marsrover.program.Block.While;
@@ -42,22 +39,11 @@ class DefaultLevelsTest {
                 .collect(java.util.stream.Collectors.toMap(Level::id, l -> l));
     }
 
-    private static Block ifKrater(Block... then) {
-        return new If(new Condition(Sensor.VORN_KRATER, false), List.of(then), false, List.of());
-    }
-
-    private static final Map<String, List<Block>> SOLUTIONS = Map.of(
-            "01-landing", List.of(vor(), vor(), probe(), links(), vor(), vor()),
-            "02-long-road", List.of(repeat(9, vor())),
-            "03-crater-field", List.of(repeat(6, ifKrater(links(), vor(), rechts()), vor())),
-            "04-unknown-distance", List.of(
-                    loop(Sensor.VORN_FREI, false, vor()), probe(), rechts(), loop(Sensor.VORN_FREI, false, vor())));
-
     @Test
     void everyLevelHasAThreeStarSolutionFromItsPalette() {
-        for (var e : SOLUTIONS.entrySet()) {
-            Level level = levels.get(e.getKey());
-            Program program = new Program(e.getValue());
+        for (Level level : levels.values()) {
+            assertTrue(!level.solution().isEmpty(), level.id() + " has no solution");
+            Program program = new Program(Block.fromSolution(level.solution()));
             assertUsesOnlyPalette(level, program.blocks());
 
             StepResult r = run(level, program);

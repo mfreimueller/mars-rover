@@ -32,7 +32,10 @@ Tick every box; anything that fails goes to the "Found" list at the end.
 
 - [ ] Name: empty, 13+ characters (typing stops), "Max!" and a bad word are refused with a message.
 - [ ] Level 1 solvable by drag & drop only. **Newcomer test: under 1 minute without help.**
-- [ ] Clicking a palette block appends it; dragging back to the palette deletes; right-click deletes.
+- [ ] Clicking a toolbox block (top of the program panel) appends it; dragging a program block back onto the toolbox deletes; right-click deletes.
+- [ ] The divider between map and program can be dragged; it resets on the next level.
+- [ ] "Lösung": asks first (Enter = "Weiter probieren"); "Lösung zeigen" fills the program, button greys out; solving then shows "Geschafft – mit Lösung" and 0 ★ for that level on the end screen.
+- [ ] On a smaller screen / 125 % scaling the whole UI shrinks to fit: nothing clipped, error banner wraps.
 - [ ] `for` number: left click +1, right click −1, scroll wheel; stays within 1–20.
 - [ ] Block limit: level 2 refuses a 5th block, counter flashes red.
 - [ ] Run / Step / Reset, all three speeds; F5, Enter, F6, R, Del work.

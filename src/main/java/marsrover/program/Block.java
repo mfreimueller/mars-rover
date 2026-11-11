@@ -4,6 +4,7 @@ import java.util.List;
 import marsrover.model.Action;
 import marsrover.model.PaletteEntry;
 import marsrover.model.Sensor;
+import marsrover.model.SolutionStep;
 
 /** The program AST. Bodies are immutable lists; the editor builds new trees on change. */
 public sealed interface Block {
@@ -44,6 +45,21 @@ public sealed interface Block {
             case PaletteEntry.WhileEntry w -> new While(new Condition(w.sensor(), w.negated()), List.of());
             case PaletteEntry.IfEntry i ->
                     new If(new Condition(i.sensor(), i.negated()), List.of(), i.withElse(), List.of());
+        };
+    }
+
+    /** A level's reference solution as a program. */
+    static List<Block> fromSolution(List<SolutionStep> steps) {
+        return steps.stream().map(Block::fromSolution).toList();
+    }
+
+    private static Block fromSolution(SolutionStep s) {
+        List<Block> body = fromSolution(s.body());
+        return switch (fromPalette(s.entry())) {
+            case Command c -> c;
+            case Repeat r -> new Repeat(r.count(), body);
+            case While w -> new While(w.cond(), body);
+            case If i -> new If(i.cond(), body, i.hasElse(), fromSolution(s.otherwise()));
         };
     }
 }

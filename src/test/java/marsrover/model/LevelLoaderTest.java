@@ -74,6 +74,39 @@ class LevelLoaderTest {
         assertEquals("", level.intro());
     }
 
+    private static String withSolution(String tokens) {
+        return VALID.replace("\"program\": null", "\"program\": null, \"solution\": " + tokens.replace('\'', '"'));
+    }
+
+    @Test
+    void solutionIsOptionalAndNestsWithEnd() throws Exception {
+        assertTrue(parse(VALID).solution().isEmpty());
+
+        List<SolutionStep> solution = parse(withSolution(
+                "['for:3', 'ifelse:vornKrater', 'linksUm', 'else', 'vor', 'end', 'end', 'probeNehmen']")).solution();
+
+        assertEquals(2, solution.size());
+        SolutionStep loop = solution.getFirst();
+        assertEquals(new ForEntry(3), loop.entry());
+        SolutionStep ifElse = loop.body().getFirst();
+        assertEquals(List.of(new ActionEntry(Action.LINKS_UM)), ifElse.body().stream().map(SolutionStep::entry).toList());
+        assertEquals(List.of(new ActionEntry(Action.VOR)), ifElse.otherwise().stream().map(SolutionStep::entry).toList());
+        assertEquals(new ActionEntry(Action.PROBE_NEHMEN), solution.get(1).entry());
+    }
+
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', quoteCharacter = '`', value = {
+            "['for:3', 'vor']                | zu 'for:3' fehlt \"end\"",
+            "['vor', 'end']                  | 'end' ohne passenden Block",
+            "['ifelse:vornFrei', 'vor', 'end'] | zu 'ifelse:vornFrei' fehlt \"else\"",
+            "['if:vornFrei', 'else', 'end']  | zu 'if:vornFrei' fehlt \"end\"",
+            "['fliegen']                     | Unbekannter Block 'fliegen'",
+            "[]                              | solution ist leer",
+    })
+    void rejectsBrokenSolutions(String tokens, String message) {
+        assertTrue(failure(withSolution(tokens)).contains(message), failure(withSolution(tokens)));
+    }
+
     @Test
     void createWorldReturnsIndependentCopies() throws Exception {
         Level level = parse(VALID);

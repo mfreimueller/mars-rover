@@ -51,7 +51,7 @@ public final class LevelLoader {
             String id, String title, String intro,
             Integer width, Integer height, List<String> tiles,
             RoverJson rover, Integer battery, List<String> palette,
-            Integer maxBlocks, StarsJson stars,
+            Integer maxBlocks, StarsJson stars, List<String> solution,
             Object program /* reserved for fix-the-bug levels, ignored for now */) {}
 
     private static final ObjectMapper MAPPER = new ObjectMapper()
@@ -179,9 +179,21 @@ public final class LevelLoader {
             throw new LevelFormatException("stars.battery und stars.blocks müssen mindestens 1 sein");
         }
 
+        List<SolutionStep> solution = List.of();
+        if (j.solution() != null) {
+            try {
+                solution = SolutionStep.parse(j.solution());
+            } catch (IllegalArgumentException e) {
+                throw new LevelFormatException("solution: " + e.getMessage());
+            }
+            if (solution.isEmpty()) {
+                throw new LevelFormatException("solution ist leer");
+            }
+        }
+
         String intro = j.intro() == null ? "" : j.intro();
         return new Level(id, title, intro, tiles, start, battery, palette, maxBlocks,
-                new Level.StarThresholds(starBattery, starBlocks));
+                new Level.StarThresholds(starBattery, starBlocks), solution);
     }
 
     private static List<String> validateTiles(List<String> rows, int width, int height)

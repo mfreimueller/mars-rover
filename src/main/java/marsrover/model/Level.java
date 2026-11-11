@@ -13,7 +13,8 @@ public record Level(
         int battery,
         List<PaletteEntry> palette,
         OptionalInt maxBlocks,
-        StarThresholds stars) {
+        StarThresholds stars,
+        List<SolutionStep> solution /* empty: no "Lösung" button */) {
 
     public record StarThresholds(int battery, int blocks) {}
 

@@ -65,7 +65,10 @@ public final class LevelScreen extends StackPane {
     private Program program;
     private Interpreter interpreter;
     private Timeline timeline;
-    private ResultOverlay overlay;
+    private StackPane overlay; // success card or the "show solution?" question
+    private final Button solutionButton = button(Texts.SOLUTION, "neutral", this::askForSolution);
+    /** Once the solution was shown, solving this level gives no stars. */
+    private boolean solutionShown;
 
     /**
      * @param progress shown above the title, e.g. "Pilot:in Max · Level 2 / 4"
@@ -190,7 +193,10 @@ public final class LevelScreen extends StackPane {
 
         Region gap = new Region();
         gap.setMinWidth(24);
-        HBox bar = new HBox(24, run, step, reset, gap, speedBox, batteryBox, samplesLabel);
+        solutionButton.setVisible(!level.solution().isEmpty());
+        solutionButton.setManaged(!level.solution().isEmpty());
+
+        HBox bar = new HBox(24, run, step, reset, solutionButton, gap, speedBox, batteryBox, samplesLabel);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.setPadding(new Insets(12, 32, 28, 32));
         return bar;
@@ -248,6 +254,21 @@ public final class LevelScreen extends StackPane {
         show(interpreter.current());
     }
 
+    /** "Lösung" button: asks first, because the solution costs the stars. */
+    public void askForSolution() {
+        stopTimeline();
+        closeOverlay();
+        overlay = ResultOverlay.confirmSolution(this::showSolution, this::closeOverlay);
+        getChildren().add(overlay);
+    }
+
+    /** Loads the solution into the editor; solving the level then gives no stars. */
+    public void showSolution() {
+        solutionShown = true;
+        solutionButton.setDisable(true);
+        editor.showProgram(Block.fromSolution(level.solution())); // resets the level
+    }
+
     private void startTimeline() {
         stopTimeline();
         Duration pace = Duration.millis(SPEED_MS[(int) Math.round(speed.getValue())]);
@@ -300,9 +321,9 @@ public final class LevelScreen extends StackPane {
 
     private void solved(StepResult r) {
         int blocks = program.blockCount();
-        int stars = Stars.rate(true, r.batteryUsed(), blocks, level.stars());
+        int stars = solutionShown ? 0 : Stars.rate(true, r.batteryUsed(), blocks, level.stars());
         onSolved.accept(stars);
-        overlay = new ResultOverlay(stars, r.batteryUsed(), blocks, level.stars(),
+        overlay = new ResultOverlay(stars, r.batteryUsed(), blocks, level.stars(), solutionShown,
                 last ? Texts.FINISH : Texts.NEXT_LEVEL, this::reset, onNext);
         getChildren().add(overlay);
     }

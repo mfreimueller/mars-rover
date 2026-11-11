@@ -13,5 +13,6 @@
   "battery": 20,
   "palette": ["vor", "linksUm", "for:5", "probeNehmen"],
   "maxBlocks": 4,
-  "stars": { "battery": 9, "blocks": 2 }
+  "stars": { "battery": 9, "blocks": 2 },
+  "solution": ["for:9", "vor", "end"]
 }

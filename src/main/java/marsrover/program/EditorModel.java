@@ -62,7 +62,13 @@ public final class EditorModel {
     private List<Slot> gaps;
 
     public EditorModel(List<Block> initial) {
-        initial.forEach(b -> root.add(fromBlock(b)));
+        replaceAll(initial);
+    }
+
+    /** Throws the current program away and shows {@code blocks} instead (e.g. the solution). */
+    public void replaceAll(List<Block> blocks) {
+        root.clear();
+        blocks.forEach(b -> root.add(fromBlock(b)));
         rebuild();
     }
 
