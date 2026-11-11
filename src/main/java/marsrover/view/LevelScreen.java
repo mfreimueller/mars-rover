@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Slider;
+import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -19,6 +20,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import marsrover.model.Level;
 import marsrover.model.Stars;
@@ -31,13 +33,16 @@ import marsrover.program.StepResult;
 import marsrover.program.StepResult.Status;
 
 /**
- * One level: palette left, map in the middle, program right, controls at the bottom.
+ * One level: map left, editor (toolbox + program) right, controls at the bottom.
+ * The divider between map and editor can be dragged.
  * Run is a {@link Timeline} that calls {@link Interpreter#step()} at the chosen speed.
  * On success a {@link ResultOverlay} shows the stars.
  */
 public final class LevelScreen extends StackPane {
 
     private static final double[] SPEED_MS = {600, 300, 100};
+    /** Share of the width the map gets at the start of each level. */
+    private static final double MAP_SHARE = 0.56;
     private static final Tile[] LEGEND_ORDER = {Tile.SAMPLE, Tile.BASE, Tile.CRATER, Tile.ROCK, Tile.DUST};
 
     private final Level level;
@@ -81,11 +86,11 @@ public final class LevelScreen extends StackPane {
 
         BorderPane layout = new BorderPane();
         layout.setTop(header());
-        layout.setLeft(editor.palettePanel());
-        BorderPane.setMargin(editor.palettePanel(), new Insets(12, 0, 12, 32));
-        layout.setCenter(worldPane());
-        layout.setRight(editor.programPanel());
-        BorderPane.setMargin(editor.programPanel(), new Insets(12, 32, 12, 0));
+        SplitPane split = new SplitPane(worldPane(), editor.panel());
+        split.getStyleClass().add("level-split");
+        split.setDividerPositions(MAP_SHARE);
+        BorderPane.setMargin(split, new Insets(12, 32, 12, 24));
+        layout.setCenter(split);
         layout.setBottom(controls());
         getChildren().add(layout);
 
@@ -117,16 +122,23 @@ public final class LevelScreen extends StackPane {
         banner.setMouseTransparent(true);
         message.getStyleClass().add("message");
         message.setWrapText(true);
+        message.setTextAlignment(TextAlignment.CENTER);
         hint.getStyleClass().add("java-hint");
+        hint.setWrapText(true);
 
         StackPane map = new StackPane(worldCanvas, banner);
         StackPane.setAlignment(banner, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(banner, new Insets(0, 0, 8, 0));
+        StackPane.setMargin(banner, new Insets(0, 8, 8, 8));
+        // never wider than the map, so long messages wrap instead of being cut off
+        // (16 margin + 56 banner padding)
+        message.maxWidthProperty().bind(map.widthProperty().subtract(72));
+        hint.maxWidthProperty().bind(map.widthProperty().subtract(72));
         VBox.setVgrow(map, Priority.ALWAYS);
 
         VBox pane = new VBox(12, map, legend());
         pane.setAlignment(Pos.CENTER);
-        BorderPane.setMargin(pane, new Insets(12, 24, 12, 24));
+        pane.setMinWidth(320);
+        pane.setPadding(new Insets(0, 12, 0, 0));
         return pane;
     }
 

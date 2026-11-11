@@ -9,7 +9,10 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.transform.Scale;
 import marsrover.model.Level;
 import marsrover.model.LevelLoader;
 import marsrover.program.Block;
@@ -23,6 +26,10 @@ import marsrover.session.Session;
  * panel (Ctrl+Shift+A) can sit on top of any screen. Screens report back through callbacks.
  */
 public final class Game {
+
+    /** Below this size the whole UI is laid out at this size and scaled down to fit. */
+    private static final double MIN_WIDTH = 1600;
+    private static final double MIN_HEIGHT = 900;
 
     private final StackPane shell = new StackPane();
     private final Path levelsFolder;
@@ -46,13 +53,37 @@ public final class Game {
         this.nameFilter = nameFilter;
         this.clock = clock;
         this.preload = preload;
-        scene.setRoot(shell);
+        scene.setRoot(scaledToFit(scene, shell));
         scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             if (e.isControlDown() && e.isShiftDown() && e.getCode() == KeyCode.A) {
                 openAdmin();
                 e.consume();
             }
         });
+    }
+
+    /**
+     * Small screens (laptops, 125 % Windows scaling) get the same layout, just smaller,
+     * instead of clipped text and squeezed panels.
+     */
+    private static Pane scaledToFit(Scene scene, Region content) {
+        Scale scale = new Scale(1, 1, 0, 0);
+        content.getTransforms().add(scale);
+        Pane root = new Pane(content);
+        Runnable fit = () -> {
+            double w = scene.getWidth();
+            double h = scene.getHeight();
+            double f = Math.min(1, Math.min(w / MIN_WIDTH, h / MIN_HEIGHT));
+            scale.setX(f);
+            scale.setY(f);
+            content.setMinSize(w / f, h / f);
+            content.setPrefSize(w / f, h / f);
+            content.setMaxSize(w / f, h / f);
+        };
+        scene.widthProperty().addListener(o -> fit.run());
+        scene.heightProperty().addListener(o -> fit.run());
+        fit.run();
+        return root;
     }
 
     private void setScreen(Node screen) {
@@ -147,7 +178,7 @@ public final class Game {
 
     /** Dev shortcut: the end screen with a made-up session. */
     public void showDemoEnd() {
-        session = new Session("Ada", clock.getAsLong() - 187_000);
+        session = new Session(System.getProperty("name", "Ada"), clock.getAsLong() - 187_000);
         int[] stars = {3, 2, 3, 1};
         for (int i = 0; i < levels.size(); i++) {
             session.recordSolved(levels.get(i).id(), stars[i % stars.length], clock.getAsLong());

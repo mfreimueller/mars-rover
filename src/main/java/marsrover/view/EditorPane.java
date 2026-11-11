@@ -16,6 +16,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
@@ -35,9 +36,9 @@ import marsrover.program.EditorModel.Slot;
 import marsrover.program.Program;
 
 /**
- * Parsons editor: palette (left panel) and program (right panel).
- * Drag a palette block into the program to add it (or click it to append),
- * drag a program block to move it, drag it back to the palette to delete it.
+ * Parsons editor in one panel: a wrapping toolbox of blocks on top, the program below.
+ * Drag a toolbox block into the program to add it (or click it to append),
+ * drag a program block to move it, drag it back onto the toolbox to delete it.
  */
 public final class EditorPane {
 
@@ -46,11 +47,11 @@ public final class EditorPane {
     private final EditorModel model;
     private final Runnable onChange;
 
-    private final VBox palettePanel;
+    private final FlowPane toolbox;
     private final VBox rowsBox = new VBox(2);
     private final Region indicator = new Region();
     private final Label placeholder = new Label(Texts.DROP_HERE);
-    private final VBox programPanel;
+    private final VBox panel;
     private final List<HBox> rowNodes = new ArrayList<>();
 
     private final OptionalInt maxBlocks;
@@ -65,17 +66,14 @@ public final class EditorPane {
         this.model = new EditorModel(initial);
         this.onChange = onChange;
         this.maxBlocks = level.maxBlocks();
-        this.palettePanel = buildPalette(level.palette());
-        this.programPanel = buildProgramPanel();
+        this.toolbox = buildToolbox(level.palette());
+        this.panel = buildPanel();
         render();
     }
 
-    public Node palettePanel() {
-        return palettePanel;
-    }
-
-    public Node programPanel() {
-        return programPanel;
+    /** Toolbox and program together. */
+    public Region panel() {
+        return panel;
     }
 
     public Program program() {
@@ -109,8 +107,8 @@ public final class EditorPane {
     /** While locked (program running), nothing can be dragged or clicked. */
     public void setLocked(boolean locked) {
         this.locked = locked;
-        palettePanel.setDisable(locked);
-        programPanel.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("locked"), locked);
+        toolbox.setDisable(locked);
+        panel.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("locked"), locked);
     }
 
     /** Highlights a 1-based line; 0 clears. */
@@ -131,12 +129,10 @@ public final class EditorPane {
         }
     }
 
-    // ---- palette ----------------------------------------------------------------------------
+    // ---- toolbox ----------------------------------------------------------------------------
 
-    private VBox buildPalette(List<PaletteEntry> entries) {
-        Label heading = new Label(Texts.PALETTE);
-        heading.getStyleClass().add("panel-heading");
-        VBox blocks = new VBox(14);
+    private FlowPane buildToolbox(List<PaletteEntry> entries) {
+        FlowPane blocks = new FlowPane(10, 10);
         for (PaletteEntry entry : entries) {
             Label chip = chip(paletteText(entry), kindClass(entry));
             chip.setOnDragDetected(e -> {
@@ -157,21 +153,21 @@ public final class EditorPane {
             });
             blocks.getChildren().add(chip);
         }
-        VBox panel = new VBox(16, heading, blocks);
-        panel.getStyleClass().addAll("panel", "palette");
-        panel.setPrefWidth(500);
-        panel.setMinWidth(500);
+        blocks.getStyleClass().add("palette");
+        blocks.setPrefWrapLength(400); // the panel's width decides the actual wrapping
 
-        // Dropping a program block back on the palette deletes it.
-        panel.setOnDragOver(e -> {
+        // Dropping a program block back on the toolbox deletes it.
+        blocks.setOnDragOver(e -> {
             if (dragged instanceof EditorModel.Node) {
                 e.acceptTransferModes(TransferMode.MOVE);
-                panel.getStyleClass().add("trash");
+                if (!blocks.getStyleClass().contains("trash")) {
+                    blocks.getStyleClass().add("trash");
+                }
             }
             e.consume();
         });
-        panel.setOnDragExited(e -> panel.getStyleClass().remove("trash"));
-        panel.setOnDragDropped(e -> {
+        blocks.setOnDragExited(e -> blocks.getStyleClass().remove("trash"));
+        blocks.setOnDragDropped(e -> {
             if (dragged instanceof EditorModel.Node node) {
                 model.remove(node);
                 e.setDropCompleted(true);
@@ -179,7 +175,7 @@ public final class EditorPane {
             }
             e.consume();
         });
-        return panel;
+        return blocks;
     }
 
     static String paletteText(PaletteEntry entry) {
@@ -222,7 +218,7 @@ public final class EditorPane {
 
     // ---- program ----------------------------------------------------------------------------
 
-    private VBox buildProgramPanel() {
+    private VBox buildPanel() {
         Label title = new Label(Texts.PROGRAM);
         title.getStyleClass().add("panel-heading");
         counter.getStyleClass().add("block-counter");
@@ -260,10 +256,12 @@ public final class EditorPane {
         dropArea.setOnDragExited(e -> indicator.setVisible(false));
         dropArea.setOnDragDropped(this::onDropOnProgram);
 
-        VBox panel = new VBox(12, heading, scroll);
+        Label toolboxHint = new Label(Texts.PALETTE);
+        toolboxHint.getStyleClass().add("toolbox-hint");
+
+        VBox panel = new VBox(10, toolboxHint, toolbox, heading, scroll);
         panel.getStyleClass().addAll("panel", "program");
-        panel.setPrefWidth(660);
-        panel.setMinWidth(560);
+        panel.setMinWidth(420);
         return panel;
     }
 

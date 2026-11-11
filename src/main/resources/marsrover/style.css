@@ -462,3 +462,44 @@
 .button.neutral {
     -fx-background-color: #6a4a3e;
 }
+
+/* ---- level layout: map | editor, draggable divider ---- */
+
+.level-split {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-box-border: transparent;
+}
+
+.level-split > .split-pane-divider {
+    -fx-background-color: transparent;
+    -fx-padding: 0 7 0 7;
+    -fx-cursor: h-resize;
+}
+
+.level-split > .split-pane-divider > .horizontal-grabber {
+    -fx-background-color: #8a5a44;
+    -fx-background-radius: 4;
+    -fx-padding: 40 3 40 3;
+}
+
+.level-split > .split-pane-divider:hover > .horizontal-grabber {
+    -fx-background-color: #ffcc00;
+}
+
+/* toolbox: the blocks you can use, on top of the program */
+
+.toolbox-hint {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ffb68a;
+}
+
+.palette {
+    -fx-background-color: #2f1912;
+    -fx-background-radius: 12;
+    -fx-padding: 12;
+    -fx-border-color: transparent;
+    -fx-border-width: 3;
+    -fx-border-radius: 12;
+}

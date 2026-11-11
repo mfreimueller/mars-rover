@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import marsrover.model.Level;
 import marsrover.session.Session;
@@ -22,6 +23,8 @@ public final class EndScreen extends BorderPane {
 
         Label title = new Label(Texts.missionComplete(session.name()));
         title.getStyleClass().add("start-title");
+        title.setWrapText(true);
+        title.setMinHeight(Region.USE_PREF_SIZE);
 
         GridPane table = new GridPane();
         table.setHgap(40);
