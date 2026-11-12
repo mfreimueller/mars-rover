@@ -132,6 +132,12 @@ public final class LevelScreen extends StackPane {
         StackPane map = new StackPane(worldCanvas, banner);
         StackPane.setAlignment(banner, Pos.BOTTOM_CENTER);
         StackPane.setMargin(banner, new Insets(0, 8, 8, 8));
+        // while the error banner shows, the map moves up (and shrinks if needed) so the banner
+        // never covers the board
+        Runnable makeRoom = () -> StackPane.setMargin(worldCanvas,
+                new Insets(0, 0, banner.isVisible() ? banner.getHeight() + 16 : 0, 0));
+        banner.visibleProperty().addListener((obs, was, now) -> makeRoom.run());
+        banner.heightProperty().addListener((obs, was, now) -> makeRoom.run());
         // never wider than the map, so long messages wrap instead of being cut off
         // (16 margin + 56 banner padding)
         message.maxWidthProperty().bind(map.widthProperty().subtract(72));
